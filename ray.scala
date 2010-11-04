@@ -1,7 +1,7 @@
 import scala.math._
 
 object PrettyPrinter {
-  def print(objects:AnyRef*) {
+  def coords(objects:Number*):String = {
     objects.mkString("(", ", ", ")")
   }
 }
@@ -14,7 +14,7 @@ class Vector3(val x:Double, val y:Double, val z:Double) {
     if (m == 0) {
       this
     } else {
-    	new Vector3(x / m, y / m, z / m)
+      new Vector3(x / m, y / m, z / m)
     }
   }
 
@@ -29,14 +29,15 @@ class Vector3(val x:Double, val y:Double, val z:Double) {
     this.x * that.y + this.y * that.x
   )
 
-  override def toString = "(" + x + ", " + y +  ", " + z + ")"
-
+  override def toString = PrettyPrinter.coords(x, y, z)
 }
 
 class Point2(val x:Double, val y:Double) {
 
+  override def toString = PrettyPrinter.coords(x, y)
+
 }
 
 class Point3(val x:Double, val y:Double, val z:Double) {
-  override def toString = "(" + x + ", " + y +  ", " + z + ")"  
+  override def toString = PrettyPrinter.coords(x, y, z)
 }
