@@ -18,26 +18,30 @@ class Vector3(val x:Double, val y:Double, val z:Double) {
     }
   }
 
-  def +(that:Vector3) = new Vector3(this.x + that.x, this.y + that.y, this.z + that.z)
-  def -(that:Vector3) = new Vector3(this.x - that.x, this.y - that.y, this.z - that.z)
+  def +(v:Vector3) = new Vector3(x + v.x, y + v.y, z + v.z)
+  def -(v:Vector3) = new Vector3(x - v.x, y - v.y, z - v.z)
   def *(s:Double) = new Vector3(x * s, y * s, z * s)
 
-  def dot(that:Vector3) = this.x * that.x + this.y * that.y + this.z * that.z
-  def cross(that:Vector3) = new Vector3(
-    this.y * that.z + this.z * that.y, 
-    this.z * that.x + this.x * that.z,
-    this.x * that.y + this.y * that.x
+  def dot(v:Vector3) = x * v.x + y * v.y + z * v.z
+  def cross(v:Vector3) = new Vector3(
+    y * v.z + z * v.y, 
+    z * v.x + x * v.z,
+    x * v.y + y * v.x
   )
 
   override def toString = PrettyPrinter.coords(x, y, z)
 }
 
 class Point2(val x:Double, val y:Double) {
-
   override def toString = PrettyPrinter.coords(x, y)
-
 }
 
 class Point3(val x:Double, val y:Double, val z:Double) {
   override def toString = PrettyPrinter.coords(x, y, z)
 }
+
+class Color(val r:Double, val g:Double, val b:Double) {
+  require(r >= 0 && r <= 1 && g >= 0 && g <= 1 && b >= 0 && b <= 1)
+  override def toString = PrettyPrinter.coords(r, g, b)
+}
+
