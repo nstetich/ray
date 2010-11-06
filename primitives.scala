@@ -6,6 +6,20 @@ object PrettyPrinter {
   }
 }
 
+object Constants {
+  val Error = 0.000005
+  def floatCompare(a:Double, b:Double) = {
+    val lowerBound = b - Error
+    val upperBound = b + Error
+    if (a < lowerBound) 
+      -1
+    else if (a >= lowerBound && b <= upperBound) 
+      0
+    else 
+      1
+  }
+}
+
 class Vector2(val x:Double, val y:Double) {
   def magnitude = sqrt(x * x + y * y)
   def direction = {
@@ -58,6 +72,7 @@ class Point2(val x:Double, val y:Double) {
 class Point3(val x:Double, val y:Double, val z:Double) {
   def +(v:Vector3) = new Point3(x + v.x, y + v.y, z + v.z)
   def -(v:Vector3) = new Point3(x - v.x, y - v.y, z - v.z)
+  def -(p:Point3) = new Vector3(x - p.x, y - p.y, z - p.z)
   override def toString = PrettyPrinter.coords(x, y, z)
 }
 
@@ -73,17 +88,62 @@ class Color(val r:Double, val g:Double, val b:Double) {
   override def toString = PrettyPrinter.coords(r, g, b)
 }
 
+class Intersection(val p:Point3, val normal:Vector3) {
+  
+}
+
+trait Material {
+  val c:Color
+}
+
 // Surfaces: move to another file?
 
 trait Surface {
+  val material:Material
   def normal(p:Point3) = Vector3.Zero // default implementation
+  def intersection(origin:Point3, d:Vector3):List[Intersection] = Nil // default implementation
 }
 
-class Sphere(val center:Point3, val r:Double) extends Surface {
+class Sphere(center:Point3, radius:Double, val material:Material) extends Surface {
+  val c = center
+  val r = radius
+  
+  def intersection(o:Point3, d:Vector3) = {
+    // (o + td - c) dot (o + td - c) - R^2
+    // (d dot d)t^2 + 2d dot (e - c)t + (e - c) dot (e - c) - R^2 = 0
+    // Solve using quadratic equation
 
+    val determinant = pow(d dot (o - c), 2) - (d dot d) * (((o - c) dot (o - c)) - (r * r))
+    // Compare using error interval (for floating point inaccuracies)
+    val comparison = Constants.floatCompare(determinant, 0)
+    // Find the "time" at which the ray intersects the surface 
+    val ts:List[Double] =
+      if (comparison < 0) {
+         // No solutions
+         Nil
+      } else {
+        // a = -B term
+        // b = A^2 term
+        val a = -d dot (o - c)
+        val b = d dot d
+        if (comparison == 0) {
+          // One solution
+          (a / b) :: Nil
+        } else if (comparison > 0) {
+          // Two solutions
+          // c = B^2 - 4AC term
+          val c = sqrt(determinant)
+          ((a + c) / b) :: ((a - c) / b) :: Nil
+        }
+      }
+    for (t <- ts) yield {
+      val p = o + (d * t)
+      new Intersection(p, p - o)
+    }
+  }
 }
 
-class Triangle(val p1: Point3, val p2: Point3, val p3:Point3) extends Surface {
+class Triangle(val p1: Point3, val p2: Point3, val p3:Point3, val material:Material) extends Surface {
 
 }
 
@@ -94,3 +154,5 @@ class Screen(val origin:Point3, val xAxis:Vector3, val yAxis:Vector3,
   def pixelAt(x:Double, y:Double) = 
     origin + xAxis * ((x + 0.5) / w)  + yAxis * ((y + 0.5) / h)
 }
+
+
