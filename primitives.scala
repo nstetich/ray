@@ -37,10 +37,11 @@ class Vector3(val x:Double, val y:Double, val z:Double) {
   def unary_- = new Vector3(-x, -y, -z)
 
   def dot(v:Vector3) = x * v.x + y * v.y + z * v.z
+  // (a2b3 − a3b2, a3b1 − a1b3, a1b2 − a2b1).
   def cross(v:Vector3) = new Vector3(
-    y * v.z + z * v.y, 
-    z * v.x + x * v.z,
-    x * v.y + y * v.x
+    y * v.z - z * v.y, 
+    z * v.x - x * v.z,
+    x * v.y - y * v.x
   )
 
   override def toString = PrettyPrinter.coords(x, y, z)
