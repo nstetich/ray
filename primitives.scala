@@ -89,11 +89,15 @@ class Color(val r:Double, val g:Double, val b:Double) {
 }
 
 class Intersection(val p:Point3, val normal:Vector3) {
-  
+  override def toString = String.format("p = %s, n = %s", p, normal)
 }
 
 trait Material {
   val c:Color
+}
+
+class GenericMaterial(val c:Color) extends Material {
+
 }
 
 // Surfaces: move to another file?
@@ -108,7 +112,7 @@ class Sphere(center:Point3, radius:Double, val material:Material) extends Surfac
   val c = center
   val r = radius
   
-  def intersection(o:Point3, d:Vector3) = {
+  override def intersection(o:Point3, d:Vector3) = {
     // (o + td - c) dot (o + td - c) - R^2
     // (d dot d)t^2 + 2d dot (e - c)t + (e - c) dot (e - c) - R^2 = 0
     // Solve using quadratic equation
@@ -129,7 +133,7 @@ class Sphere(center:Point3, radius:Double, val material:Material) extends Surfac
         if (comparison == 0) {
           // One solution
           (a / b) :: Nil
-        } else if (comparison > 0) {
+        } else {
           // Two solutions
           // c = B^2 - 4AC term
           val c = sqrt(determinant)
@@ -141,6 +145,8 @@ class Sphere(center:Point3, radius:Double, val material:Material) extends Surfac
       new Intersection(p, p - o)
     }
   }
+
+  override def toString = String.format("Sphere: center = %s, radius = %s", c, r.asInstanceOf[AnyRef])
 }
 
 class Triangle(val p1: Point3, val p2: Point3, val p3:Point3, val material:Material) extends Surface {
@@ -153,6 +159,9 @@ class Screen(val origin:Point3, val xAxis:Vector3, val yAxis:Vector3,
 
   def pixelAt(x:Double, y:Double) = 
     origin + xAxis * ((x + 0.5) / w)  + yAxis * ((y + 0.5) / h)
+
+  override def toString = String.format("(%d x %d) screen: origin = %s, x = %s, y = %s", 
+    w.asInstanceOf[AnyRef], h.asInstanceOf[AnyRef], origin, xAxis, yAxis)
 }
 
 
