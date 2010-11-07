@@ -1,4 +1,5 @@
 import scala.math._
+import java.io.File
 
 object PrettyPrinter {
   def coords(objects:Number*) = {
@@ -88,7 +89,7 @@ class Color(val r:Double, val g:Double, val b:Double) {
   override def toString = PrettyPrinter.coords(r, g, b)
 }
 
-class Intersection(val p:Point3, val normal:Vector3) {
+class Intersection(val surface:Surface, val p:Point3, val normal:Vector3, val distance:Double) {
   override def toString = String.format("p = %s, n = %s", p, normal)
 }
 
@@ -105,14 +106,14 @@ class GenericMaterial(val c:Color) extends Material {
 trait Surface {
   val material:Material
   def normal(p:Point3) = Vector3.Zero // default implementation
-  def intersection(origin:Point3, d:Vector3):List[Intersection] = Nil // default implementation
+  def intersections(origin:Point3, d:Vector3):List[Intersection] = Nil // default implementation
 }
 
 class Sphere(center:Point3, radius:Double, val material:Material) extends Surface {
   val c = center
   val r = radius
   
-  override def intersection(o:Point3, d:Vector3) = {
+  override def intersections(o:Point3, d:Vector3) = {
     // (o + td - c) dot (o + td - c) - R^2
     // (d dot d)t^2 + 2d dot (e - c)t + (e - c) dot (e - c) - R^2 = 0
     // Solve using quadratic equation
@@ -142,7 +143,7 @@ class Sphere(center:Point3, radius:Double, val material:Material) extends Surfac
       }
     for (t <- ts) yield {
       val p = o + (d * t)
-      new Intersection(p, p - o)
+      new Intersection(this.asInstanceOf[Surface], p, p - center, (p - o).magnitude)
     }
   }
 
@@ -151,6 +152,12 @@ class Sphere(center:Point3, radius:Double, val material:Material) extends Surfac
 
 class Triangle(val p1: Point3, val p2: Point3, val p3:Point3, val material:Material) extends Surface {
 
+}
+
+trait Model {
+  val eye:Point3
+  val screen:Screen
+  val surfaces:List[Surface]
 }
 
 class Screen(val origin:Point3, val xAxis:Vector3, val yAxis:Vector3, 
@@ -162,6 +169,38 @@ class Screen(val origin:Point3, val xAxis:Vector3, val yAxis:Vector3,
 
   override def toString = String.format("(%d x %d) screen: origin = %s, x = %s, y = %s", 
     w.asInstanceOf[AnyRef], h.asInstanceOf[AnyRef], origin, xAxis, yAxis)
+}
+
+//import java.awt.image.*, import javax.imageio.stream.*, import javax.imageio.*
+ 
+
+class ImageBuffer(w:Int, h:Int) {
+  import java.awt.image.BufferedImage
+  import javax.imageio.ImageIO
+  import javax.imageio.stream.FileImageOutputStream
+
+  val buf = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB)
+
+  def setPixel(x:Int, y:Int, value:Color) = buf.setRGB(x, y, value.intValue)
+
+  def writeToFile(f:File) = {
+    val fios = new FileImageOutputStream(f)
+    try {
+      ImageIO.write(buf, "png", fios)
+    } finally {
+      if (fios != null) {
+        fios.close()
+      }
+    } 
+  }
+}
+
+object Renderer {
+  def render(model:Model, file:File) = {
+    for ( x <- 0 until model.screen.w; y <- 0 until model.screen.h ) {
+      val intersections = model.surfaces.flatMap(_.intersections(model.eye, model.screen.pixelAt(x, y) - model.eye))
+    }
+  }
 }
 
 
