@@ -1,5 +1,4 @@
 import scala.math._
-import java.io.File
 
 object PrettyPrinter {
   def coords(objects:Number*) = {
@@ -80,6 +79,12 @@ class Point3(val x:Double, val y:Double, val z:Double) {
 class Color(val r:Double, val g:Double, val b:Double) {
   require(r >= 0 && r <= 1 && g >= 0 && g <= 1 && b >= 0 && b <= 1)
 
+  def *(c:Color) = new Color(r * r, g * g, b * b)
+  def *(n:Double) = {
+    require(n <= 1.0)
+    new Color(r * n, g * n, b * n)
+  }
+
   def intValue = {
     ((r * 255).asInstanceOf[Int] << 16) |
     ((g * 255).asInstanceOf[Int] << 8) |
@@ -89,122 +94,11 @@ class Color(val r:Double, val g:Double, val b:Double) {
   override def toString = PrettyPrinter.coords(r, g, b)
 }
 
-trait Material {
-  val c:Color
-}
-
-class GenericMaterial(val c:Color) extends Material {
-
-}
-
 class Intersection(val p:Point3, val normal:Vector3, val distance:Double) extends Ordered[Intersection] {
   override def toString = String.format("p = %s, n = %s", p, normal)
   override def compare(i:Intersection) = distance.compare(i.distance)
 }
 
-// Surfaces: move to another file?
 
-trait Surface {
-  val material:Material
-  def normal(p:Point3) = Vector3.Zero // default implementation
-  def intersections(origin:Point3, d:Vector3):List[Intersection] = Nil // default implementation
-}
-
-class Sphere(center:Point3, radius:Double, val material:Material) extends Surface {
-  val c = center
-  val r = radius
-  
-  override def intersections(o:Point3, d:Vector3) = {
-    // (o + td - c) dot (o + td - c) - R^2
-    // (d dot d)t^2 + 2d dot (e - c)t + (e - c) dot (e - c) - R^2 = 0
-    // Solve using quadratic equation
-
-    val determinant = pow(d dot (o - c), 2) - (d dot d) * (((o - c) dot (o - c)) - (r * r))
-    // Compare using error interval (for floating point inaccuracies)
-    val comparison = Constants.floatCompare(determinant, 0)
-    // Find the "time" at which the ray intersects the surface 
-    val ts:List[Double] =
-      if (comparison < 0) {
-         // No solutions
-         Nil
-      } else {
-        // a = -B term
-        // b = A^2 term
-        val a = -d dot (o - c)
-        val b = d dot d
-        if (comparison == 0) {
-          // One solution
-          (a / b) :: Nil
-        } else {
-          // Two solutions
-          // c = B^2 - 4AC term
-          val c = sqrt(determinant)
-          ((a + c) / b) :: ((a - c) / b) :: Nil
-        }
-      }
-    for (t <- ts) yield {
-      val p = o + (d * t)
-      new Intersection(p, p - center, (p - o).magnitude)
-    }
-  }
-
-  override def toString = String.format("Sphere: center = %s, radius = %s", c, r.asInstanceOf[AnyRef])
-}
-
-class Triangle(val p1: Point3, val p2: Point3, val p3:Point3, val material:Material) extends Surface {
-
-}
-
-class Screen(val origin:Point3, val xAxis:Vector3, val yAxis:Vector3, 
-    val w:Int, val h:Int) {
-  def normal = (xAxis cross yAxis).direction
-
-  def pixelAt(x:Double, y:Double):Point3 = 
-    origin + xAxis * ((x + 0.5) / w)  + yAxis * ((y + 0.5) / h)
-
-  override def toString = String.format("(%d x %d) screen: origin = %s, x = %s, y = %s", 
-    w.asInstanceOf[AnyRef], h.asInstanceOf[AnyRef], origin, xAxis, yAxis)
-}
-
-//import java.awt.image.*, import javax.imageio.stream.*, import javax.imageio.*
- 
-
-trait Model {
-  val eye:Point3
-  val screen:Screen
-  val surfaces:List[Surface]
-}
-
-class ImageBuffer(w:Int, h:Int) {
-  import java.awt.image.BufferedImage
-  import javax.imageio.ImageIO
-  import javax.imageio.stream.FileImageOutputStream
-
-  val buf = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB)
-
-  def setPixel(x:Int, y:Int, value:Color) = buf.setRGB(x, y, value.intValue)
-
-  def writeToFile(f:File) = {
-    val fios = new FileImageOutputStream(f)
-    try {
-      ImageIO.write(buf, "png", fios)
-    } finally {
-      if (fios != null) {
-        fios.close()
-      }
-    } 
-  }
-}
-
-object Renderer {
-  def render(model:Model, file:File) = {
-    for ( x <- 0 until model.screen.w; y <- 0 until model.screen.h ) {
-      val intersection = model.surfaces.flatMap( (surface) => {
-        val ray = model.screen.pixelAt(x, y) - model.eye
-        surface.intersections(model.eye, ray)
-      }).max
-    }
-  }
-}
 
 
