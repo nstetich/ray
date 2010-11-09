@@ -89,16 +89,17 @@ class Color(val r:Double, val g:Double, val b:Double) {
   override def toString = PrettyPrinter.coords(r, g, b)
 }
 
-class Intersection(val surface:Surface, val p:Point3, val normal:Vector3, val distance:Double) {
-  override def toString = String.format("p = %s, n = %s", p, normal)
-}
-
 trait Material {
   val c:Color
 }
 
 class GenericMaterial(val c:Color) extends Material {
 
+}
+
+class Intersection(val p:Point3, val normal:Vector3, val distance:Double) extends Ordered[Intersection] {
+  override def toString = String.format("p = %s, n = %s", p, normal)
+  override def compare(i:Intersection) = distance.compare(i.distance)
 }
 
 // Surfaces: move to another file?
@@ -143,7 +144,7 @@ class Sphere(center:Point3, radius:Double, val material:Material) extends Surfac
       }
     for (t <- ts) yield {
       val p = o + (d * t)
-      new Intersection(this.asInstanceOf[Surface], p, p - center, (p - o).magnitude)
+      new Intersection(p, p - center, (p - o).magnitude)
     }
   }
 
@@ -154,17 +155,11 @@ class Triangle(val p1: Point3, val p2: Point3, val p3:Point3, val material:Mater
 
 }
 
-trait Model {
-  val eye:Point3
-  val screen:Screen
-  val surfaces:List[Surface]
-}
-
 class Screen(val origin:Point3, val xAxis:Vector3, val yAxis:Vector3, 
     val w:Int, val h:Int) {
   def normal = (xAxis cross yAxis).direction
 
-  def pixelAt(x:Double, y:Double) = 
+  def pixelAt(x:Double, y:Double):Point3 = 
     origin + xAxis * ((x + 0.5) / w)  + yAxis * ((y + 0.5) / h)
 
   override def toString = String.format("(%d x %d) screen: origin = %s, x = %s, y = %s", 
@@ -173,6 +168,12 @@ class Screen(val origin:Point3, val xAxis:Vector3, val yAxis:Vector3,
 
 //import java.awt.image.*, import javax.imageio.stream.*, import javax.imageio.*
  
+
+trait Model {
+  val eye:Point3
+  val screen:Screen
+  val surfaces:List[Surface]
+}
 
 class ImageBuffer(w:Int, h:Int) {
   import java.awt.image.BufferedImage
@@ -198,7 +199,10 @@ class ImageBuffer(w:Int, h:Int) {
 object Renderer {
   def render(model:Model, file:File) = {
     for ( x <- 0 until model.screen.w; y <- 0 until model.screen.h ) {
-      val intersections = model.surfaces.flatMap(_.intersections(model.eye, model.screen.pixelAt(x, y) - model.eye))
+      val intersection = model.surfaces.flatMap( (surface) => {
+        val ray = model.screen.pixelAt(x, y) - model.eye
+        surface.intersections(model.eye, ray)
+      }).max
     }
   }
 }
