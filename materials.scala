@@ -1,8 +1,8 @@
 trait Material {
-  val c:Color
+  val color:Color
 }
 
-class GenericMaterial(val c:Color) extends Material {
+class GenericMaterial(val color:Color) extends Material {
 
 }
 

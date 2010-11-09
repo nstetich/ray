@@ -79,11 +79,12 @@ class Point3(val x:Double, val y:Double, val z:Double) {
 class Color(val r:Double, val g:Double, val b:Double) {
   require(r >= 0 && r <= 1 && g >= 0 && g <= 1 && b >= 0 && b <= 1)
 
-  def *(c:Color) = new Color(r * r, g * g, b * b)
+  def *(c:Color) = new Color(r * c.r, g * c.g, b * c.b)
   def *(n:Double) = {
-    require(n <= 1.0)
+    require(n <= 1 && n >= 0)
     new Color(r * n, g * n, b * n)
   }
+  def +(c:Color) = new Color(max(1, r + c.r), max(1, g + c.g), max(1, b + c.b))
 
   def intValue = {
     ((r * 255).asInstanceOf[Int] << 16) |
@@ -94,8 +95,16 @@ class Color(val r:Double, val g:Double, val b:Double) {
   override def toString = PrettyPrinter.coords(r, g, b)
 }
 
-class Intersection(val p:Point3, val normal:Vector3, val distance:Double) extends Ordered[Intersection] {
-  override def toString = String.format("p = %s, n = %s", p, normal)
+object Color {
+  val White = new Color(1, 1, 1)
+  val Black = new Color(0, 0, 0)
+  val Red = new Color(1, 0, 0)
+  val Blue = new Color(0, 0, 1)
+  val Green = new Color(0, 1, 0)
+}
+
+class Intersection(val surface:Surface, val location:Point3, val normal:Vector3, val distance:Double) extends Ordered[Intersection] {
+  override def toString = String.format("p = %s, n = %s", location, normal)
   override def compare(i:Intersection) = distance.compare(i.distance)
 }
 
