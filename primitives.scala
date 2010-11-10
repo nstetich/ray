@@ -101,6 +101,7 @@ object Color {
   val Red = new Color(1, 0, 0)
   val Blue = new Color(0, 0, 1)
   val Green = new Color(0, 1, 0)
+  val Yellow = new Color(1, 1, 0)
 }
 
 class Intersection(val surface:Surface, val location:Point3, val normal:Vector3, val distance:Double, val t:Double) extends Ordered[Intersection] {

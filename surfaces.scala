@@ -4,11 +4,34 @@ trait Surface {
   val material:Material
   def normal(p:Point3) = Vector3.Zero // default implementation
   def intersections(origin:Point3, d:Vector3):List[Intersection] = Nil // default implementation
+  def intersection(origin:Point3, direction:Vector3):Option[Intersection] = None
 }
 
 class Sphere(center:Point3, radius:Double, val material:Material) extends Surface {
   val c = center
   val r = radius
+  
+  override def intersection(origin:Point3, direction:Vector3):Option[Intersection] = {
+//    float intersectRaySphere(const Ray &ray, const Sphere &sphere) {
+//	    Vec dst = ray.o - sphere.o;
+//	    float B = dot(dst, ray.d);
+//	    float C = dot(dst, dst) - sphere.r2;
+//	    float D = B*B - C;
+//	    return D > 0 ? -B - sqrt(D) : std::numeric_limits<float>::infinity();
+//    }
+    val dst = origin - this.c
+    val b = dst dot (direction.direction)
+    val c = (dst dot dst) - r * r
+    val d = b * b - c
+    if (d > 0) {
+      val t = -b - sqrt(d)
+      val p = origin + (direction * t)
+      val n = p - this.c
+      val dist = direction.magnitude * t
+      Some(new Intersection(this.asInstanceOf[Surface], p, n, dist, t))
+    } else
+      None
+  }
   
   override def intersections(origin:Point3, direction:Vector3) = {
     val o = origin

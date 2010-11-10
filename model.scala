@@ -30,7 +30,9 @@ class Model(
   val eye:Point3,
   val screen:Screen,
   val lights:List[Light],
-  val surfaces:List[Surface]) 
+  val surfaces:List[Surface],
+  val ambientLight:Color,
+  val backgroundColor:Color)
 {
 
   def lambert(intensity:Color, reflectance:Color, 
@@ -47,21 +49,22 @@ class Model(
     val log = new PrintWriter(new BufferedWriter(new FileWriter("log.txt")))
     val imgBuf = new ImageBuffer(screen.w, screen.h)
     for ( x <- 0 until screen.w; y <- 0 until screen.h ) {
-    val ray = screen.pixelAt(x, y) - eye 
+    val ray = (screen.pixelAt(x, y) - eye).direction
     // Gather all intersections with all objects, and pick the closest. 
-    val intersections = surfaces.flatMap(_.intersections(eye, ray))
+    val intersections = surfaces.flatMap(_.intersection(eye, ray))
     if (!intersections.isEmpty) {
         val i = intersections.min // Pick the closest intersection
-        log.println(String.format("(%d,%d): P = %s, V = %s, t = %f", x.asInstanceOf[AnyRef], y.asInstanceOf[AnyRef], i.location, i.normal, i.t.asInstanceOf[AnyRef]))
+//        log.println(String.format("(%d,%d): P = %s, V = %s, t = %f", x.asInstanceOf[AnyRef], y.asInstanceOf[AnyRef], i.location, i.normal, i.t.asInstanceOf[AnyRef]))
         val colors = for (light <- lights) yield {
           val lightRay = light vectorFrom i.location
           lambert(i.surface.material.color, light.color, i.normal, lightRay)
         }
         // y coordinates are numbered top to bottom for ImageBuffer
-        imgBuf.setPixel(x, screen.h - y, colors.foldLeft(Color.Black)(_ + _))
+        val defaultColor = ambientLight * i.surface.material.color
+        imgBuf.setPixel(x, screen.h - y, colors.foldLeft(defaultColor)(_ + _))
       } else {
         log.println(String.format("(%s,%s): No intersections", x.asInstanceOf[AnyRef], y.asInstanceOf[AnyRef]))
-        imgBuf.setPixel(x, y, Color.White)
+        imgBuf.setPixel(x, y, backgroundColor)
       }
     }
     log.close()
@@ -104,7 +107,9 @@ object RenderTest {
     val screen = new Screen(P(-1.5, -1.5, 0), V(3, 0, 0), V(0, 3, 0), 400, 400)
     val surfaces = new Sphere(P(0, 0, 0), 1.0, new GenericMaterial(Color.Red)) :: Nil
     val lights = new PointLight(P(-10, 10, 10), Color.White) :: Nil
-    val model = new Model(eye, screen, lights, surfaces)
+    val ambient = new Color(0.1, 0.1, 0.1)
+    val bg = Color.Black
+    val model = new Model(eye, screen, lights, surfaces, ambient, bg)
     val file = new File("foo.png")
     try {
       println("Rendering...")
