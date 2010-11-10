@@ -41,7 +41,7 @@ class Sphere(center:Point3, radius:Double, val material:Material) extends Surfac
       }
     for (t <- ts) yield {
       val p = o + (d * t)
-      new Intersection(this.asInstanceOf[Surface], p, p - center, (p - o).magnitude)
+      new Intersection(this.asInstanceOf[Surface], p, p - center, (p - o).magnitude, t)
     }
   }
 

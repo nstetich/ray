@@ -51,14 +51,14 @@ class Model(
     // Gather all intersections with all objects, and pick the closest. 
     val intersections = surfaces.flatMap(_.intersections(eye, ray))
     if (!intersections.isEmpty) {
-        require(lights.length >= 1)
-        val light = lights(0)
         val i = intersections.min // Pick the closest intersection
-        log.println(String.format("(%d,%d): P = %s, V = %s", x.asInstanceOf[AnyRef], y.asInstanceOf[AnyRef], i.location, i.normal))
-        val lightRay = light vectorFrom i.location
+        log.println(String.format("(%d,%d): P = %s, V = %s, t = %f", x.asInstanceOf[AnyRef], y.asInstanceOf[AnyRef], i.location, i.normal, i.t.asInstanceOf[AnyRef]))
+        val colors = for (light <- lights) yield {
+          val lightRay = light vectorFrom i.location
+          lambert(i.surface.material.color, light.color, i.normal, lightRay)
+        }
         // y coordinates are numbered top to bottom for ImageBuffer
-        imgBuf.setPixel(x, screen.h - y, 
-          lambert(i.surface.material.color, light.color, i.normal, lightRay))
+        imgBuf.setPixel(x, screen.h - y, colors.foldLeft(Color.Black)(_ + _))
       } else {
         log.println(String.format("(%s,%s): No intersections", x.asInstanceOf[AnyRef], y.asInstanceOf[AnyRef]))
         imgBuf.setPixel(x, y, Color.White)

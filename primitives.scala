@@ -84,7 +84,7 @@ class Color(val r:Double, val g:Double, val b:Double) {
     require(n <= 1 && n >= 0)
     new Color(r * n, g * n, b * n)
   }
-  def +(c:Color) = new Color(max(1, r + c.r), max(1, g + c.g), max(1, b + c.b))
+  def +(c:Color) = new Color(min(1, r + c.r), min(1, g + c.g), min(1, b + c.b))
 
   def intValue = {
     ((r * 255).asInstanceOf[Int] << 16) |
@@ -103,7 +103,7 @@ object Color {
   val Green = new Color(0, 1, 0)
 }
 
-class Intersection(val surface:Surface, val location:Point3, val normal:Vector3, val distance:Double) extends Ordered[Intersection] {
+class Intersection(val surface:Surface, val location:Point3, val normal:Vector3, val distance:Double, val t:Double) extends Ordered[Intersection] {
   override def toString = String.format("p = %s, n = %s", location, normal)
   override def compare(i:Intersection) = distance.compare(i.distance)
 }
