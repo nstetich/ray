@@ -10,11 +10,12 @@ class Sphere(center:Point3, radius:Double, val material:Material) extends Surfac
   val c = center
   val r = radius
   
-  override def intersections(o:Point3, d:Vector3) = {
+  override def intersections(origin:Point3, direction:Vector3) = {
+    val o = origin
+    val d = direction
     // (o + td - c) dot (o + td - c) - R^2
     // (d dot d)t^2 + 2d dot (e - c)t + (e - c) dot (e - c) - R^2 = 0
     // Solve using quadratic equation
-
     val determinant = pow(d dot (o - c), 2) - (d dot d) * (((o - c) dot (o - c)) - (r * r))
     // Compare using error interval (for floating point inaccuracies)
     val comparison = Constants.floatCompare(determinant, 0)
@@ -33,7 +34,7 @@ class Sphere(center:Point3, radius:Double, val material:Material) extends Surfac
           (a / b) :: Nil
         } else {
           // Two solutions
-          // c = B^2 - 4AC term
+          // c = sqrt(B^2 - 4AC) term
           val c = sqrt(determinant)
           ((a + c) / b) :: ((a - c) / b) :: Nil
         }
