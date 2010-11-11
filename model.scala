@@ -43,6 +43,15 @@ class Model(
       (normal dot light) / (normal.magnitude * light.magnitude))
   }
 
+  def phong(intensity:Color, reflectance:Color,
+            eye:Vector3, normal:Vector3, light:Vector3) = {
+    // Find the (unit) vector pointed halfway between the eye ray and light ray    
+    val h = (eye + light).direction
+    val n = normal.direction
+    reflectance * intensity * pow((h dot n), 64)
+    
+  }
+
   def render(file:File) = {
     // Set up log file
     import java.io._
@@ -57,13 +66,14 @@ class Model(
 //        log.println(String.format("(%d,%d): P = %s, V = %s, t = %f", x.asInstanceOf[AnyRef], y.asInstanceOf[AnyRef], i.location, i.normal, i.t.asInstanceOf[AnyRef]))
         val colors = for (light <- lights) yield {
           val lightRay = light vectorFrom i.location
-          lambert(i.surface.material.color, light.color, i.normal, lightRay)
+          (lambert(i.surface.material.reflectivity, light.color, i.normal, lightRay) +
+           phong(i.surface.material.highlight, light.color, ray, i.normal, lightRay))
         }
         // y coordinates are numbered top to bottom for ImageBuffer
-        val defaultColor = ambientLight * i.surface.material.color
+        val defaultColor = ambientLight * i.surface.material.reflectivity
         imgBuf.setPixel(x, screen.h - y, colors.foldLeft(defaultColor)(_ + _))
       } else {
-        log.println(String.format("(%s,%s): No intersections", x.asInstanceOf[AnyRef], y.asInstanceOf[AnyRef]))
+ //       log.println(String.format("(%s,%s): No intersections", x.asInstanceOf[AnyRef], y.asInstanceOf[AnyRef]))
         imgBuf.setPixel(x, y, backgroundColor)
       }
     }
@@ -105,7 +115,7 @@ object RenderTest {
   def main(args:Array[String]) = {
     val eye = P(0, 0, 8)
     val screen = new Screen(P(-1.5, -1.5, 0), V(3, 0, 0), V(0, 3, 0), 400, 400)
-    val surfaces = new Sphere(P(0, 0, 0), 1.0, new GenericMaterial(Color.Red)) :: Nil
+    val surfaces = new Sphere(P(0, 0, 0), 1.0, new GenericMaterial(Color.Red, Color.White)) :: Nil
     val lights = new PointLight(P(-10, 10, 10), Color.White) :: Nil
     val ambient = new Color(0.1, 0.1, 0.1)
     val bg = Color.Black

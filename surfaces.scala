@@ -32,7 +32,8 @@ class Sphere(center:Point3, radius:Double, val material:Material) extends Surfac
     } else
       None
   }
-  
+
+  // Broken 
   override def intersections(origin:Point3, direction:Vector3) = {
     val o = origin
     val d = direction

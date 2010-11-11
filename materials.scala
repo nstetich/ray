@@ -1,8 +1,12 @@
 trait Material {
-  val color:Color
+  val reflectivity:Color
+  val highlight:Color
 }
 
-class GenericMaterial(val color:Color) extends Material {
+class GenericMaterial(
+  val reflectivity:Color,
+  val highlight:Color
+) extends Material {
 
 }
 
