@@ -121,3 +121,27 @@ model: {
     println(ModelParsers.parseAll(ModelParsers.obj ,m.asInstanceOf[CharSequence])) 
   }
 }
+
+object RenderTest {
+  import java.io._
+
+  def main(args:Array[String]) = {
+    val inFilename = args(0)
+    val outFilename = args(1)
+    val input = new BufferedReader(new FileReader(inFilename))
+    val output = new File(outFilename)
+    try {
+      ModelParsers.parseAll(ModelParsers.obj, input) match {
+        case model:Model => model.render(output)
+        case x =>  {
+          println("Received input other than a model.")
+          println(x)
+        }
+      }
+    } finally {
+      if (input != null) 
+        input.close()
+    }
+  }
+}
+

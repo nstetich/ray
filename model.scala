@@ -26,14 +26,14 @@ class DirectionalLight(direction:Vector3, val color:Color) extends Light {
   override def vectorFrom(destination:Point3) = direction
 }
 
-class Model(
+class Model (
   val eye:Point3,
   val screen:Screen,
   val lights:List[Light],
   val surfaces:List[Surface],
   val ambientLight:Color,
-  val backgroundColor:Color)
-{
+  val backgroundColor:Color
+) {
 
   def lambert(intensity:Color, reflectance:Color, 
               normal:Vector3, light:Vector3) = {
@@ -81,38 +81,8 @@ class Model(
     imgBuf.writeToFile(file)
   }
 
-  def toXml = {
-    <model>
-      <
-    </model>
-  }
-}
+  override def toString = String.format("Model: eye = %s, screen = %s, surfaces = %s, lights = %s, ambient = %s, bg = %s", eye, screen, surfaces, lights, ambientLight, backgroundColor)
 
-object Model {
-  def serialize(model:Model) = {
-    <model>
-      <eye x={model.eye.x} y={model.eye.y} z={model.eye.z}>
-      <screen>
-        <origin x={model.origin.x} y={model.origin.y} z={model.origin.z}/>
-        <hAxis x={model.screen.xAxis.x} y={model.screen.xAxis.y} z={model.screen.xAxis.z}/>
-        <vAxis x={model.screen.yAxis.x} y={model.screen.yAxis.y} z={model.screen.yAxis.z}/>
-        <resolution h={screen.h} w={screen.w}/>
-      </screen>
-      <lights>
-      {for light <- model.lights {
-        light match {
-          case l:DirectionalLight => <directional x={l.direction.x} y={l.direction.y} z={l.direction.z} intensity={l.color.intValue}/>
-          case l:PointLight => <point x={l.point.x} y={l.point.y} ={l.point.z}/>
-        }
-      }}
-      </lights>
-      
-    </model>
-  }
-
-  def deserialize(elem:scala.xml.Elem) = { 
-    
-  }
 }
 
 class ImageBuffer(w:Int, h:Int) {
@@ -144,22 +114,4 @@ object V {
   def apply(x:Double, y:Double, z:Double) = new Vector3(x, y, z)
 }
 
-object RenderTest {
-  def main(args:Array[String]) = {
-    val eye = P(0, 0, 8)
-    val screen = new Screen(P(-1.5, -1.5, 0), V(3, 0, 0), V(0, 3, 0), 400, 400)
-    val surfaces = new Sphere(P(0, 0, 0), 1.0, new GenericMaterial(Color.Red, Color.White)) :: Nil
-    val lights = new PointLight(P(-10, 10, 10), Color.White) :: Nil
-    val ambient = new Color(0.1, 0.1, 0.1)
-    val bg = Color.Black
-    val model = new Model(eye, screen, lights, surfaces, ambient, bg)
-    val file = new File("foo.png")
-    try {
-      println("Rendering...")
-      model.render(new File("foo.png"))
-    } catch {
-       case e => e.printStackTrace()
-    }
-  }
-}
 

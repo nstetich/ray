@@ -34,7 +34,7 @@ class Vector2(val x:Double, val y:Double) {
 
   def dot(v:Vector2) = x * v.x + y * v.y
 
-  override def toString = PrettyPrinter.coords(x, y)
+  override def toString = "V" + PrettyPrinter.coords(x, y)
 }
 
 class Vector3(val x:Double, val y:Double, val z:Double) {
@@ -58,7 +58,7 @@ class Vector3(val x:Double, val y:Double, val z:Double) {
     x * v.y - y * v.x
   )
 
-  override def toString = PrettyPrinter.coords(x, y, z)
+  override def toString = "V" + PrettyPrinter.coords(x, y, z)
 }
 
 object Vector3 {
@@ -66,14 +66,14 @@ object Vector3 {
 } 
 
 class Point2(val x:Double, val y:Double) {
-  override def toString = PrettyPrinter.coords(x, y)
+  override def toString = "P" + PrettyPrinter.coords(x, y)
 }
 
 class Point3(val x:Double, val y:Double, val z:Double) {
   def +(v:Vector3) = new Point3(x + v.x, y + v.y, z + v.z)
   def -(v:Vector3) = new Point3(x - v.x, y - v.y, z - v.z)
   def -(p:Point3) = new Vector3(x - p.x, y - p.y, z - p.z)
-  override def toString = PrettyPrinter.coords(x, y, z)
+  override def toString = "P" + PrettyPrinter.coords(x, y, z)
 }
 
 class Color(val r:Double, val g:Double, val b:Double) {

@@ -69,7 +69,7 @@ class Sphere(center:Point3, radius:Double, val material:Material) extends Surfac
     }
   }
 
-  override def toString = String.format("Sphere: center = %s, radius = %s", c, r.asInstanceOf[AnyRef])
+  override def toString = String.format("Sphere: center = %s, radius = %s, material = %s", c, r.asInstanceOf[AnyRef], material)
 }
 
 class Triangle(val p1: Point3, val p2: Point3, val p3:Point3, val material:Material) extends Surface {
