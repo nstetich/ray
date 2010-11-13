@@ -79,29 +79,43 @@ class Point3(val x:Double, val y:Double, val z:Double) {
 class Color(val r:Double, val g:Double, val b:Double) {
   require(r >= 0 && r <= 1 && g >= 0 && g <= 1 && b >= 0 && b <= 1)
 
-  def *(c:Color) = new Color(r * c.r, g * c.g, b * c.b)
-  def *(n:Double) = {
+  def this(r: Int, g: Int, b: Int) = {
+    this(r.asInstanceOf[Double] / 255.0, 
+         g.asInstanceOf[Double] / 255.0,
+         b.asInstanceOf[Double] / 255.0)
+  }
+  def this(rgb: Int) = {
+    this((rgb >> 16) & 0xff, (rgb >> 8) & 0xff, rgb & 0xff)
+  }
+
+  def *(c: Color) = new Color(r * c.r, g * c.g, b * c.b)
+  def *(n: Double) = {
     require(n <= 1 && n >= 0)
     new Color(r * n, g * n, b * n)
   }
-  def +(c:Color) = new Color(min(1, r + c.r), min(1, g + c.g), min(1, b + c.b))
+  def +(c: Color) = new Color(min(1, r + c.r), min(1, g + c.g), min(1, b + c.b))
 
   def intValue = {
     ((r * 255).asInstanceOf[Int] << 16) |
     ((g * 255).asInstanceOf[Int] << 8) |
-    (b * 255).asInstanceOf[Int]
+     (b * 255).asInstanceOf[Int]
   }
 
-  override def toString = PrettyPrinter.coords(r, g, b)
+  override def toString = String.format("Color: #%06x", intValue.asInstanceOf[AnyRef])
 }
 
 object Color {
-  val White = new Color(1, 1, 1)
+  val White = new Color(1.0, 1.0, 1.0)
   val Black = new Color(0, 0, 0)
-  val Red = new Color(1, 0, 0)
-  val Blue = new Color(0, 0, 1)
-  val Green = new Color(0, 1, 0)
-  val Yellow = new Color(1, 1, 0)
+  val Red = new Color(1.0, 0, 0)
+  val Blue = new Color(0, 0, 1.0)
+  val Green = new Color(0, 1.0, 0)
+  val Yellow = new Color(1.0, 1.0, 0)
+
+  def apply(r: Double, g: Double, b: Double) = new Color(r, g, b)
+  def apply(r: Int, g: Int, b: Int) = new Color(r, g, b)
+
+  def hexString(c:Color) = String.format("#%08x", c.intValue.asInstanceOf[AnyRef])
 }
 
 class Intersection(val surface:Surface, val location:Point3, val normal:Vector3, val distance:Double, val t:Double) extends Ordered[Intersection] {

@@ -80,6 +80,39 @@ class Model(
     log.close()
     imgBuf.writeToFile(file)
   }
+
+  def toXml = {
+    <model>
+      <
+    </model>
+  }
+}
+
+object Model {
+  def serialize(model:Model) = {
+    <model>
+      <eye x={model.eye.x} y={model.eye.y} z={model.eye.z}>
+      <screen>
+        <origin x={model.origin.x} y={model.origin.y} z={model.origin.z}/>
+        <hAxis x={model.screen.xAxis.x} y={model.screen.xAxis.y} z={model.screen.xAxis.z}/>
+        <vAxis x={model.screen.yAxis.x} y={model.screen.yAxis.y} z={model.screen.yAxis.z}/>
+        <resolution h={screen.h} w={screen.w}/>
+      </screen>
+      <lights>
+      {for light <- model.lights {
+        light match {
+          case l:DirectionalLight => <directional x={l.direction.x} y={l.direction.y} z={l.direction.z} intensity={l.color.intValue}/>
+          case l:PointLight => <point x={l.point.x} y={l.point.y} ={l.point.z}/>
+        }
+      }}
+      </lights>
+      
+    </model>
+  }
+
+  def deserialize(elem:scala.xml.Elem) = { 
+    
+  }
 }
 
 class ImageBuffer(w:Int, h:Int) {
