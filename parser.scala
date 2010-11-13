@@ -131,7 +131,7 @@ object RenderTest {
     val input = new BufferedReader(new FileReader(inFilename))
     val output = new File(outFilename)
     try {
-      ModelParsers.parseAll(ModelParsers.obj, input) match {
+      ModelParsers.parseAll(ModelParsers.obj, input).get match {
         case model:Model => model.render(output)
         case x =>  {
           println("Received input other than a model.")
