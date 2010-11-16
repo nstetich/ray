@@ -76,6 +76,10 @@ class Point3(val x:Double, val y:Double, val z:Double) {
   override def toString = "P" + PrettyPrinter.coords(x, y, z)
 }
 
+class Ray(val origin:Point3, val vector:Vector3)
+
+class Vertex(val location:Point3, val normal:Vector3)
+
 class Color(val r:Double, val g:Double, val b:Double) {
   require(r >= 0 && r <= 1 && g >= 0 && g <= 1 && b >= 0 && b <= 1)
 

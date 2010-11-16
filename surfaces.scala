@@ -72,7 +72,45 @@ class Sphere(center:Point3, radius:Double, val material:Material) extends Surfac
   override def toString = String.format("Sphere: center = %s, radius = %s, material = %s", c, r.asInstanceOf[AnyRef], material)
 }
 
-class Triangle(val p1: Point3, val p2: Point3, val p3:Point3, val material:Material) extends Surface {
+class Triangle(
+  val v1: Vertex, 
+  val v2: Vertex,  
+  val v3: Vertex, 
+  val material:Material
+) extends Surface {
+
+  override def intersection(origin: Point3, vd: Vector3) : Option[Intersection] = {
+    val va = v2.location - v1.location
+    val vb = v3.location - v2.location
+    val vc = v3.location - v1.location
+    val a = va.x - vb.x
+    val b = va.y - vb.y
+    val c = va.z - vb.z
+    val d = va.x - vc.x
+    val e = va.y - vc.y
+    val f = va.z - vc.z
+    val g = vd.x
+    val h = vd.y
+    val i = vd.z
+    val j = va.x - origin.x
+    val k = va.y - origin.y
+    val l = va.z - origin.z
+    val A = e*i - h*f
+    val B = g*f - d*i
+    val C = d*h - e*g
+    val D = a*k - j*b
+    val E = j*c - a*l
+    val F = b*l - k*c
+    val M = a*A + b*B + c*C
+    val t = (f*D + e*E + d*F) / M
+    val gamma = (i*D + h*E + g*F) / M
+    if (gamma < 0 || gamma > 0) return None
+    val beta = (j*A + k*B + l*C) / M
+    if (beta < 0 || beta > 1 - gamma) return None
+    val normal = v2.normal
+    println(String.format("v = %s, t = %s, beta = %s, gamma = %s", vd, t.asInstanceOf[AnyRef], beta.asInstanceOf[AnyRef], gamma.asInstanceOf[AnyRef]))
+    return Some(new Intersection(this.asInstanceOf[Surface], origin + (vd * t), normal, vd.magnitude * t, t))
+  }
 
 }
 

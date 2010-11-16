@@ -23,9 +23,11 @@ object ModelParsers extends RegexParsers {
 
   def vector3 = "<"~>tup3fpn<~">" ^^ { case (x, y, z) => new Vector3(x, y, z) }
 
+  def vertex = point3~"^"~vector3 ^^ { case p~"^"~v => new Vertex(p, v) }
+
   def value:Parser[Any] = (
     // integer | 
-    decimal | color | point3 | vector3 | obj )
+    decimal | color | vertex | point3 | vector3 | obj )
 
   def valueList = "["~>repsep(value, Optsep)<~"]"
 
@@ -55,6 +57,13 @@ object ModelParsers extends RegexParsers {
          props("material")) match {
           case (o: Point3, r: Double, m: Material) => new Sphere(o, r, m)
         }
+      case "triangle"~":"~props =>
+        (props("vertex1"),
+         props("vertex2"),
+         props("vertex3"),
+         props("material")) match {
+          case(v1: Vertex, v2: Vertex, v3: Vertex, m: Material) => new Triangle(v1, v2, v3, m)
+        }
       case "material"~":"~props =>
         (props("reflectance"), 
          props("highlight")) match {
@@ -67,7 +76,7 @@ object ModelParsers extends RegexParsers {
          props("surfaces"),
          props("ambient"), 
          props("bg")) match {
-          // Blasted type erasure... 
+          // Argh, blasted type erasure... 
           case (e: Point3, sc: Screen, l: List[Light], su: List[Surface], a:Color, bg:Color) =>
             new Model(e, sc, l, su, a, bg)
         }
@@ -76,13 +85,15 @@ object ModelParsers extends RegexParsers {
 
 }
 
-object ModelParsersMain {
+object ModelParsersMain { 
   def main(args: Array[String]) : Unit = {
+    implicit def asCharSequence(s: String) = s.asInstanceOf[CharSequence]
 //    val p = ModelParsers.colorComponent
 //    println(ModelParsers.parseAll(ModelParsers.colorComponent, "ab".asInstanceOf[CharSequence]))
     println(ModelParsers.parseAll(ModelParsers.color, "#abcdef".asInstanceOf[CharSequence]))
     println(ModelParsers.parseAll(ModelParsers.point3, "(1,2,3)".asInstanceOf[CharSequence]))
     println(ModelParsers.parseAll(ModelParsers.property, "madness = <3.0, 2.0, 1.0>".asInstanceOf[CharSequence]))
+    println(ModelParsers.parseAll(ModelParsers.vertex, "(1,2,3) ^ <1,2,3>"))
     val m = """
 model: {
   eye = (0, 0, 10)
