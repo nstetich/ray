@@ -58,24 +58,32 @@ class Model (
     val log = new PrintWriter(new BufferedWriter(new FileWriter("log.txt")))
     val imgBuf = new ImageBuffer(screen.w, screen.h)
     for ( x <- 0 until screen.w; y <- 0 until screen.h ) {
-    val ray = (screen.pixelAt(x, y) - eye).direction
-    // Gather all intersections with all objects, and pick the closest. 
-    val intersections = surfaces.flatMap(_.intersection(eye, ray))
-    if (!intersections.isEmpty) {
+      val ray = (screen.pixelAt(x, y) - eye).direction
+      // Gather all intersections with all objects, and pick the closest. 
+      val intersections = surfaces.flatMap(_.intersection(eye, ray))
+      val pixelColor = if (!intersections.isEmpty) {
         val i = intersections.min // Pick the closest intersection
-//        log.println(String.format("(%d,%d): P = %s, V = %s, t = %f", x.asInstanceOf[AnyRef], y.asInstanceOf[AnyRef], i.location, i.normal, i.t.asInstanceOf[AnyRef]))
+  //        log.println(String.format("(%d,%d): P = %s, V = %s, t = %f", x.asInstanceOf[AnyRef], y.asInstanceOf[AnyRef], i.location, i.normal, i.t.asInstanceOf[AnyRef]))
         val colors = for (light <- lights) yield {
           val lightRay = light vectorFrom i.location
           (lambert(i.surface.material.reflectivity, light.color, i.normal, lightRay) +
            phong(i.surface.material.highlight, light.color, ray, i.normal, lightRay))
         }
-        // y coordinates are numbered top to bottom for ImageBuffer
         val defaultColor = ambientLight * i.surface.material.reflectivity
-        imgBuf.setPixel(x, screen.h - y, colors.foldLeft(defaultColor)(_ + _))
+        colors.foldLeft(defaultColor)(_ + _)
       } else {
- //       log.println(String.format("(%s,%s): No intersections", x.asInstanceOf[AnyRef], y.asInstanceOf[AnyRef]))
-        imgBuf.setPixel(x, y, backgroundColor)
+  //       log.println(String.format("(%s,%s): No intersections", x.asInstanceOf[AnyRef], y.asInstanceOf[AnyRef]))
+        backgroundColor
       }
+      val (pX, pY) = (x, screen.h - y - 1)
+      try {
+        // y coordinates are numbered top to bottom for ImageBuffer but 
+        // are numbered increasing bottom to top in this coordinate space
+        imgBuf.setPixel(pX, pY, pixelColor)
+      } catch {
+        case e:Exception => println( String.format("Error writing pixel at (%d, %d): %s", 
+          pX.asInstanceOf[AnyRef], pY.asInstanceOf[AnyRef], e.getMessage()))
+      } 
     }
     log.close()
     imgBuf.writeToFile(file)

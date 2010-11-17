@@ -80,9 +80,9 @@ class Triangle(
 ) extends Surface {
 
   override def intersection(origin: Point3, vd: Vector3) : Option[Intersection] = {
-    val va = v2.location - v1.location
-    val vb = v3.location - v2.location
-    val vc = v3.location - v1.location
+    val va = v1.location
+    val vb = v2.location
+    val vc = v3.location
     val a = va.x - vb.x
     val b = va.y - vb.y
     val c = va.z - vb.z
@@ -102,13 +102,19 @@ class Triangle(
     val E = j*c - a*l
     val F = b*l - k*c
     val M = a*A + b*B + c*C
+
     val t = (f*D + e*E + d*F) / M
+    if (t < 1) return None
+
     val gamma = (i*D + h*E + g*F) / M
-    if (gamma < 0 || gamma > 0) return None
+    if (gamma < 0 || gamma > 1) return None
+
     val beta = (j*A + k*B + l*C) / M
     if (beta < 0 || beta > 1 - gamma) return None
+
     val normal = v2.normal
-    println(String.format("v = %s, t = %s, beta = %s, gamma = %s", vd, t.asInstanceOf[AnyRef], beta.asInstanceOf[AnyRef], gamma.asInstanceOf[AnyRef]))
+ //   println(String.format("v = %s, t = %s, beta = %s, gamma = %s", vd, t.asInstanceOf[AnyRef], beta.asInstanceOf[AnyRef], gamma.asInstanceOf[AnyRef]))
+
     return Some(new Intersection(this.asInstanceOf[Surface], origin + (vd * t), normal, vd.magnitude * t, t))
   }
 
