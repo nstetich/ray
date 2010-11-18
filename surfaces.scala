@@ -58,7 +58,7 @@ class Triangle(
     val F = b*l - k*c
     val M = a*A + b*B + c*C
 
-    val t = (f*D + e*E + d*F) / M
+    val t = -(f*D + e*E + d*F) / M
 //    if (t < 0) return None
 
     val gamma = (i*D + h*E + g*F) / M
