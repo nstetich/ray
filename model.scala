@@ -58,16 +58,20 @@ class Model (
     val log = new PrintWriter(new BufferedWriter(new FileWriter("log.txt")))
     val imgBuf = new ImageBuffer(screen.w, screen.h)
     for ( x <- 0 until screen.w; y <- 0 until screen.h ) {
-      val ray = (screen.pixelAt(x, y) - eye).direction
+      val ray = new Ray(eye, (screen.pixelAt(x, y) - eye).direction)
       // Gather all intersections with all objects, and pick the closest. 
-      val intersections = surfaces.flatMap(_.intersection(eye, ray))
+      val intersections = surfaces.flatMap(_.intersection(ray))
       val pixelColor = if (!intersections.isEmpty) {
         val i = intersections.min // Pick the closest intersection
   //        log.println(String.format("(%d,%d): P = %s, V = %s, t = %f", x.asInstanceOf[AnyRef], y.asInstanceOf[AnyRef], i.location, i.normal, i.t.asInstanceOf[AnyRef]))
         val colors = for (light <- lights) yield {
-          val lightRay = light vectorFrom i.location
-          (lambert(i.surface.material.reflectivity, light.color, i.normal, lightRay) +
-           phong(i.surface.material.highlight, light.color, ray, i.normal, lightRay))
+          val point = ray.origin + ray.vector * i.t 
+          val Some(normal) = i.surface.normal(point)          
+          val lightRay = light vectorFrom point
+          // test for shadow
+          
+          (lambert(i.surface.material.reflectivity, light.color, normal, lightRay) +
+           phong(i.surface.material.highlight, light.color, ray.vector, normal, lightRay))
         }
         val defaultColor = ambientLight * i.surface.material.reflectivity
         colors.foldLeft(defaultColor)(_ + _)

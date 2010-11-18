@@ -80,6 +80,14 @@ class Ray(val origin:Point3, val vector:Vector3)
 
 class Vertex(val location:Point3, val normal:Vector3)
 
+class Intersection(
+  val surface:Surface, 
+  val t:Double
+) extends Ordered[Intersection] {
+  override def toString = String.format("surface = %s, t = %f", surface, t.asInstanceOf[AnyRef])
+  override def compare(i:Intersection) = t.compare(i.t)
+}
+
 class Color(val r:Double, val g:Double, val b:Double) {
   require(r >= 0 && r <= 1 && g >= 0 && g <= 1 && b >= 0 && b <= 1)
 
@@ -120,11 +128,6 @@ object Color {
   def apply(r: Int, g: Int, b: Int) = new Color(r, g, b)
 
   def hexString(c:Color) = String.format("#%08x", c.intValue.asInstanceOf[AnyRef])
-}
-
-class Intersection(val surface:Surface, val location:Point3, val normal:Vector3, val distance:Double, val t:Double) extends Ordered[Intersection] {
-  override def toString = String.format("p = %s, n = %s", location, normal)
-  override def compare(i:Intersection) = distance.compare(i.distance)
 }
 
 
