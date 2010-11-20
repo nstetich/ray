@@ -2,7 +2,7 @@ import scala.math._
 
 trait Surface {
   val material:Material
-  def intersection(ray:Ray):Option[Intersection]
+  def intersection(ray:Ray, tmin:Double, tmax:Double):Option[Intersection]
   def normal(p:Point3):Option[Vector3]
 }
 
@@ -10,7 +10,7 @@ class Sphere(center:Point3, radius:Double, val material:Material) extends Surfac
   val c = center
   val r = radius
   
-  override def intersection(ray:Ray):Option[Intersection] = {
+  override def intersection(ray:Ray, tmin:Double, tmax:Double):Option[Intersection] = {
     val dst = ray.origin - this.c
     val b = dst dot (ray.vector.direction)
     val c = (dst dot dst) - r * r
@@ -20,15 +20,21 @@ class Sphere(center:Point3, radius:Double, val material:Material) extends Surfac
 //      val p = ray.origin + (ray.vector * t)
 //      val n = p - this.c
 //      val dist = direction.magnitude * t
-      Some(new Intersection(this.asInstanceOf[Surface], t))
+//      if (Constants.floatCompare(t, tmin) > 0 &&
+//        Constants.floatCompare(t, tmax) < 0) {
+      if (t > tmin && t < tmax) {  
+        Some(new Intersection(this.asInstanceOf[Surface], t))
+      } else {
+        None
+      }
     } else
       None
   }
 
   override def normal(p:Point3):Option[Vector3] = {
-//    val n = p - this.c
-//    if (n.magnitude != this.r) None else Some(n)
-    Some(p - c)
+    val n = p - this.c
+    if (Constants.floatCompare(n.magnitude, this.r) != 0) None else Some(n)
+//    Some(p - c)
   }
 
   override def toString = String.format("Sphere: center = %s, radius = %s, material = %s", c, r.asInstanceOf[AnyRef], material)
@@ -41,7 +47,7 @@ class Triangle(
   val material:Material
 ) extends Surface {
 
-  override def intersection(ray:Ray) : Option[Intersection] = {
+  override def intersection(ray:Ray, tmin:Double, tmax:Double) : Option[Intersection] = {
     val va = v1.location
     val vb = v2.location
     val vc = v3.location
@@ -66,12 +72,18 @@ class Triangle(
     val M = a*A + b*B + c*C
 
     val t = -(f*D + e*E + d*F) / M
-    if (t < 0) return None
+//    if (Constants.floatCompare(t, tmin) < 0 || 
+//      Constants.floatCompare(t, tmax) > 0) return None
+    if (t < tmin || t > tmax) return None
 
     val gamma = (i*D + h*E + g*F) / M
+//    if (Constants.floatCompare(gamma, 0) < 0 ||
+//      Constants.floatCompare(gamma, 1) > 0) return None
     if (gamma < 0 || gamma > 1) return None
 
     val beta = (j*A + k*B + l*C) / M
+//    if (Constants.floatCompare(beta, 0) < 0 || 
+//      Constants.floatCompare(beta, 1 - gamma) > 0) return None
     if (beta < 0 || beta > 1 - gamma) return None
 
     return Some(new Intersection(this.asInstanceOf[Surface], t))

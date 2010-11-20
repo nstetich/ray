@@ -48,35 +48,37 @@ class Model (
     // Find the (unit) vector pointed halfway between the eye ray and light ray    
     val h = (eye + light).direction
     val n = normal.direction
-    reflectance * intensity * pow((h dot n), 64)
-    
+    val C = h dot n
+    reflectance * intensity * (if (C > 0) pow(C, 64) else 0)
   }
 
   def render(file:File) = {
-    // Set up log file
-    import java.io._
-    val log = new PrintWriter(new BufferedWriter(new FileWriter("log.txt")))
     val imgBuf = new ImageBuffer(screen.w, screen.h)
     for ( x <- 0 until screen.w; y <- 0 until screen.h ) {
       val ray = new Ray(eye, (screen.pixelAt(x, y) - eye).direction)
       // Gather all intersections with all objects, and pick the closest. 
-      val intersections = surfaces.flatMap(_.intersection(ray))
+      val intersections = surfaces.flatMap(_.intersection(ray, scala.Double.NegativeInfinity, scala.Double.PositiveInfinity))
       val pixelColor = if (!intersections.isEmpty) {
         val i = intersections.min // Pick the closest intersection
-  //        log.println(String.format("(%d,%d): P = %s, V = %s, t = %f", x.asInstanceOf[AnyRef], y.asInstanceOf[AnyRef], i.location, i.normal, i.t.asInstanceOf[AnyRef]))
-        val colors = for (light <- lights) yield {
+        val colors:List[Option[Color]] = for (light <- lights) yield {
           val point = ray.origin + ray.vector * i.t 
           val Some(normal) = i.surface.normal(point)          
           val lightRay = light vectorFrom point
           // test for shadow
-          
-          (lambert(i.surface.material.reflectivity, light.color, normal, lightRay) +
-           phong(i.surface.material.highlight, light.color, ray.vector, normal, lightRay))
+          val shadowIntersections = surfaces.filterNot(_ == i.surface).flatMap(_.intersection(new Ray(point, lightRay), 0, 1))
+          if (shadowIntersections.isEmpty) {
+            Some(lambert(i.surface.material.reflectivity, light.color, normal, lightRay) +
+             phong(i.surface.material.highlight, light.color, ray.vector, normal, lightRay))
+          } else {
+            for ( si <- shadowIntersections ) {
+//              println(String.format("Shadow cast on %s for light %s by %s", i.surface, light, si.surface)) 
+            }
+            None
+          }
         }
         val defaultColor = ambientLight * i.surface.material.reflectivity
-        colors.foldLeft(defaultColor)(_ + _)
+        colors.flatten.foldLeft(defaultColor)(_ + _)
       } else {
-  //       log.println(String.format("(%s,%s): No intersections", x.asInstanceOf[AnyRef], y.asInstanceOf[AnyRef]))
         backgroundColor
       }
       val (pX, pY) = (x, screen.h - y - 1)
@@ -89,7 +91,6 @@ class Model (
           pX.asInstanceOf[AnyRef], pY.asInstanceOf[AnyRef], e.getMessage()))
       } 
     }
-    log.close()
     imgBuf.writeToFile(file)
   }
 
