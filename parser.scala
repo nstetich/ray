@@ -5,6 +5,13 @@ case class ModelObject(name:String, props:Map[String, Any])
 
 case class Block(env: ModelParsers.Environment, obj: ModelObject)
 
+class UndefinedVariableException(message:String, 
+    cause:Throwable) extends Exception(message, cause) {
+  def this(message:String) = this(message, null)
+  def this(cause:Throwable) = this(null, cause)
+  def this() = this(null, null)
+}
+
 object ModelParsers extends RegexParsers {
 
   type Environment = Map[String, Any]
@@ -77,6 +84,8 @@ object ModelParsers extends RegexParsers {
 
 class ModelEval(val parent:Option[ModelEval], val block:Block) {
 
+  val AutoApplyPrefix = "_"
+
   def this(block:Block) = {
     this(None, block)
   }
@@ -100,7 +109,7 @@ class ModelEval(val parent:Option[ModelEval], val block:Block) {
     value match {
       case s:String    => evalVar(s) match {
         case Some(s) => s
-        case None => throw new RuntimeException("Undefined variable!")
+        case None => throw new UndefinedVariableException("Undefined variable!")
       }
       case l:List[Any] => l map {v => evalValue(v)}
       case b:Block     => eval(b)
@@ -109,7 +118,21 @@ class ModelEval(val parent:Option[ModelEval], val block:Block) {
   }
 
   def evalProp(propName: String): Any = {
-    evalValue(block.obj.props(propName))
+    val property = try {
+      // First see if the property is defined on the object
+      block.obj.props(propName)
+    } catch {
+      // Try looking for the property in the variables defined
+      // for the block.
+      case e:NoSuchElementException => 
+        try {
+          evalValue(AutoApplyPrefix + propName)
+        } catch {
+          // If the variable lookup fails, throw the original exception
+          case _: UndefinedVariableException => throw e
+        }
+    }
+    evalValue(property)
   }
 
   def evalProps(propNames: String*): Seq[Any] = {
