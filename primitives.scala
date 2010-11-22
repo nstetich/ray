@@ -13,7 +13,7 @@ object Constants {
     val upperBound = b + Error
     if (a < lowerBound) 
       -1
-    else if (a >= lowerBound && b <= upperBound) 
+    else if (a >= lowerBound && a <= upperBound) 
       0
     else 
       1

@@ -72,19 +72,19 @@ class Triangle(
     val M = a*A + b*B + c*C
 
     val t = -(f*D + e*E + d*F) / M
-//    if (Constants.floatCompare(t, tmin) < 0 || 
-//      Constants.floatCompare(t, tmax) > 0) return None
-    if (t < tmin || t > tmax) return None
+    if (Constants.floatCompare(t, tmin) < 0 || 
+      Constants.floatCompare(t, tmax) > 0) return None
+//    if (t < tmin || t > tmax) return None
 
     val gamma = (i*D + h*E + g*F) / M
-//    if (Constants.floatCompare(gamma, 0) < 0 ||
-//      Constants.floatCompare(gamma, 1) > 0) return None
-    if (gamma < 0 || gamma > 1) return None
+    if (Constants.floatCompare(gamma, 0) < 0 ||
+      Constants.floatCompare(gamma, 1) > 0) return None
+//    if (gamma < 0 || gamma > 1) return None
 
     val beta = (j*A + k*B + l*C) / M
-//    if (Constants.floatCompare(beta, 0) < 0 || 
-//      Constants.floatCompare(beta, 1 - gamma) > 0) return None
-    if (beta < 0 || beta > 1 - gamma) return None
+    if (Constants.floatCompare(beta, 0) < 0 || 
+      Constants.floatCompare(beta, 1 - gamma) > 0) return None
+//    if (beta < 0 || beta > 1 - gamma) return None
 
     return Some(new Intersection(this.asInstanceOf[Surface], t))
   }
