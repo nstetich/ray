@@ -1,0 +1,40 @@
+white := #ffffff
+black := #000000
+floor:= triangle: {
+  vertex1 = (-100000, 0, 100000) ^ <0, 1, 0>
+  vertex2 = (-100000, 0, -100000) ^ <0, 1, 0>
+  vertex3 = (100000, 0, 0) ^ <0, 1, 0>
+  material = material: {
+    reflectance = black
+    highlight = black
+    reflectivity = #808080
+  }
+}
+
+
+model: {
+  eye = (0, 4, 4)
+  recursion-depth = 1
+  ambient = #404040
+  bg = #000030
+  screen = camera: {
+    location = (0, 4, 4)
+    view-vector = <0, -0.85, -1>
+    up-vector = <0, 1, 0>
+    view-angle = 45.0
+    x-res = 500, y-res = 500
+  } 
+  lights = [ point-light: { location = (10, 10, 10), intensity = white } ]
+  surfaces = [
+    sphere: {
+      origin = (0, 0.5, 0)
+      radius = 0.5
+      material = material: {
+        reflectance = white
+        highlight = white
+        reflectivity = black
+      }
+    }
+    floor
+  ]
+}

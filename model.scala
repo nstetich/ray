@@ -1,6 +1,28 @@
 import scala.math._
 import java.io.File
 
+class Camera (
+  location: Point3, 
+  viewAngle: Double,
+  view: Vector3,
+  up: Vector3,
+  xRes: Int, yRes: Int
+) {
+  require(viewAngle > 0 && viewAngle < 180 && xRes > 0 && yRes > 0)
+  val eye = location
+  val screen = {
+    val ratio = yRes.asInstanceOf[Double] / xRes.asInstanceOf[Double]
+    val width = view.magnitude * Math.tan(0.5 * viewAngle.toRadians)
+    val height = ratio * width
+    val horiz = (view cross up) direction
+    val vert = -(view cross horiz) direction
+    val origin = eye + (view - (vert * (0.5 * height)) - (horiz * (0.5 * width)))
+    val xAxis = horiz * width
+    val yAxis = vert * height
+    new Screen(origin, xAxis, yAxis, xRes, yRes)
+  }
+}
+
 class Screen(val origin:Point3, val xAxis:Vector3, val yAxis:Vector3, 
     val w:Int, val h:Int) {
   def normal = (xAxis cross yAxis).direction
