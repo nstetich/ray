@@ -27,60 +27,80 @@ class DirectionalLight(direction:Vector3, val color:Color) extends Light {
 }
 
 class Model (
-  val eye:Point3,
-  val screen:Screen,
-  val lights:List[Light],
-  val surfaces:List[Surface],
-  val ambientLight:Color,
-  val backgroundColor:Color
+  val eye: Point3,
+  val screen: Screen,
+  val lights: List[Light],
+  val surfaces: List[Surface],
+  val ambientLight: Color,
+  val backgroundColor: Color,
+  val recursionDepth: Int
 ) {
 
-  def lambert(intensity:Color, reflectance:Color, 
-              normal:Vector3, light:Vector3) = {
+  def lambert(intensity: Color, reflectance: Color, 
+              normal: Vector3, light: Vector3) = {
     // c_i * c_r * cos(phi) -- Use dot product to determine cosine:
     // a dot b = mag(a) * mag(b) * cos(phi)
     intensity * reflectance * max(0, 
       (normal dot light) / (normal.magnitude * light.magnitude))
   }
 
-  def phong(intensity:Color, reflectance:Color,
-            eye:Vector3, normal:Vector3, light:Vector3) = {
+  def phong(intensity: Color, reflectance: Color,
+            eye: Vector3, normal: Vector3, light: Vector3) = {
     // Find the (unit) vector pointed halfway between the eye ray and light ray    
     val h = (eye + light).direction
     val n = normal.direction
     val C = h dot n
     reflectance * intensity * (if (C > 0) pow(C, 64) else 0)
   }
+  
+  def colorAt(ray: Ray, t0: Double, t1: Double): Color = 
+    colorAt(ray, t0, t1, 0, recursionDepth, None)
+  
+  def colorAt(ray: Ray, t0:Double, t1: Double, depth: Int, maxDepth: Int, 
+      ignoredSurface: Option[Surface]): Color = {
+    // Evaluate all light sources
+    val intersections = surfaces.flatMap(_.intersection(ray, t0, t1))
+    if (!intersections.isEmpty) {
+      val intersection = intersections.min
+      val point = ray.origin + ray.vector * intersection.t
+//      val Some(normal) = intersection.surface.normal(point)
+      val normal:Vector3 = intersection.surface.normal(point) match {
+        case Some(n:Vector3) => n
+        case _ => new Vector3(0, 0, 0)
+      }
+      val otherSurfaces = surfaces.filterNot(_ == intersection.surface)
+      val directLightColors = 
+        for ( light <- lights ) yield {
+          val lightRay = new Ray(point, light vectorFrom point)
+          val shadowIntersections = otherSurfaces.flatMap(_.intersection(lightRay, 0, 1))
+          if (shadowIntersections.isEmpty) 
+            Some(
+              lambert(intersection.surface.material.reflectance, light.color, normal, lightRay.vector) +
+              phong(intersection.surface.material.highlight, light.color, ray.vector, normal, lightRay.vector)
+            )
+          else None
+        }
+      val defaultColor = ambientLight * intersection.surface.material.reflectance
+      val reflectedLightColor: Option[Color] = 
+        if (depth < maxDepth) {
+          val reflectionRay = new Ray(point, 
+            ray.vector + (normal * (2 * (ray.vector dot normal))))
+          Some(
+            intersection.surface.material.reflectivity * 
+            colorAt(reflectionRay, 0, scala.Double.PositiveInfinity, depth + 1, maxDepth, 
+              Some(intersection.surface))
+          )
+        } else None
+      (reflectedLightColor :: directLightColors).flatten.foldLeft(defaultColor)(_ + _)
+    } else backgroundColor
+  }
 
   def render(file:File) = {
     val imgBuf = new ImageBuffer(screen.w, screen.h)
     for ( x <- 0 until screen.w; y <- 0 until screen.h ) {
       val ray = new Ray(eye, (screen.pixelAt(x, y) - eye).direction)
-      // Gather all intersections with all objects, and pick the closest. 
-      val intersections = surfaces.flatMap(_.intersection(ray, scala.Double.NegativeInfinity, scala.Double.PositiveInfinity))
-      val pixelColor = if (!intersections.isEmpty) {
-        val i = intersections.min // Pick the closest intersection
-        val colors:List[Option[Color]] = for (light <- lights) yield {
-          val point = ray.origin + ray.vector * i.t 
-          val Some(normal) = i.surface.normal(point)          
-          val lightRay = light vectorFrom point
-          // test for shadow
-          val shadowIntersections = surfaces.filterNot(_ == i.surface).flatMap(_.intersection(new Ray(point, lightRay), 0, 1))
-          if (shadowIntersections.isEmpty) {
-            Some(lambert(i.surface.material.reflectivity, light.color, normal, lightRay) +
-             phong(i.surface.material.highlight, light.color, ray.vector, normal, lightRay))
-          } else {
-            for ( si <- shadowIntersections ) {
-//              println(String.format("Shadow cast on %s for light %s by %s", i.surface, light, si.surface)) 
-            }
-            None
-          }
-        }
-        val defaultColor = ambientLight * i.surface.material.reflectivity
-        colors.flatten.foldLeft(defaultColor)(_ + _)
-      } else {
-        backgroundColor
-      }
+      val pixelColor = colorAt(ray, 0, scala.Double.PositiveInfinity)
+
       val (pX, pY) = (x, screen.h - y - 1)
       try {
         // y coordinates are numbered top to bottom for ImageBuffer but 

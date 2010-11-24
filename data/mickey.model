@@ -1,0 +1,44 @@
+white := #ffffff
+black := #000000
+red   := #ff0000
+green := #00ff00
+blue  := #0000ff
+_material := material: {
+  reflectance = white
+  reflectivity = #808080
+  highlight = white
+}
+
+model: {
+  recursion-depth = 2
+  eye = (0, 0, 20)
+  ambient = #303030
+  bg = #000040
+  screen = screen: {
+    origin = (-1.5, -1.5, 4) 
+    xAxis = <3, 0, 0>
+    yAxis = <0, 3, 0> 
+    xRes = 1000, yRes = 1000
+  }
+  lights = [
+    point-light: { location = (  0, 10,  10), intensity = #ff2020   }
+    point-light: { location = (-10, 10,  10), intensity = #20ff20 }
+    point-light: { location = ( 10, 10,  10), intensity = #2020ff  }
+  ]
+  surfaces = [
+    sphere: { origin = (0, 0, 0), radius = 1.0 }
+    sphere: { origin = ( 1, 0.8, 1), radius = 0.5}
+    sphere: { origin = (-1, 0.8, 1), radius = 0.5}
+    triangle: {
+      vertex1 = (-2, -1,  4) ^ <0, 1, 0>
+      vertex2 = ( 2, -1,  4) ^ <0, 1, 0>
+      vertex3 = (-2, -1, -4) ^ <0, 1, 0>
+    }
+    triangle: {
+      vertex1 = (-2, -1, -4) ^ <0, 1, 0>
+      vertex2 = ( 2, -1, -4) ^ <0, 1, 0>
+      vertex3 = ( 2, -1,  4) ^ <0, 1, 0>
+    }
+  ]
+}
+

@@ -33,8 +33,8 @@ class Sphere(center:Point3, radius:Double, val material:Material) extends Surfac
 
   override def normal(p:Point3):Option[Vector3] = {
     val n = p - this.c
-    if (Constants.floatCompare(n.magnitude, this.r) != 0) None else Some(n)
-//    Some(p - c)
+//    if (Constants.floatCompare(n.magnitude, this.r) != 0) None else Some(n)
+    Some(p - c)
   }
 
   override def toString = String.format("Sphere: center = %s, radius = %s, material = %s", c, r.asInstanceOf[AnyRef], material)

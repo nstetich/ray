@@ -160,14 +160,15 @@ class ModelEval(val parent:Option[ModelEval], val block:Block) {
             new Triangle(v1, v2, v3, m)
         }
       case "material" =>
-        evalProps("reflectance", "highlight") match {
-          case Seq(r: Color, h: Color) => new GenericMaterial(r, h)
+        evalProps("reflectance", "reflectivity", "highlight") match {
+          case Seq(rc: Color, rv:Color, h: Color) => new GenericMaterial(rc, rv, h)
         }
       case "model" =>
-        evalProps("eye", "screen", "lights", "surfaces", "ambient", "bg") match {
+        evalProps("eye", "screen", "lights", 
+          "surfaces", "ambient", "bg", "recursion-depth") match {
           case Seq(e: Point3, sc: Screen, li: List[Light], 
-                    su: List[Surface], amb: Color, bg: Color) =>
-            new Model(e, sc, li, su, amb, bg)
+                    su: List[Surface], amb: Color, bg: Color, rd: Int) =>
+            new Model(e, sc, li, su, amb, bg, rd)
         }
     }
   }
@@ -186,44 +187,6 @@ object ModelParsersMain {
     println(ModelParsers.parseAll(ModelParsers.vertex, "(1,2,3) ^ <1,2,3>"))
     println(ModelParsers.parseAll(ModelParsers.obj, "foo: { bar = 2, baz = #123456 }"))
     println(ModelParsers.parseAll(ModelParsers.block, "foo: { bar = 2, baz = #123456 }"))
-    val m = """
-foo := #ffffff
-bar := (1, 2, 3)
-model: {
-  eye = (0, 0, 10)
-  ambient = #404040
-  bg = #000000
-  screen = screen: {
-		origin = (-1.5, -1.5, 4) 
-		xAxis = <3, 0, 0>
-		yAxis = <0, 3, 0> 
-		xRes = 400, yRes = 400
-  }
-	lights = [
-		point-light: { location = (-10, 10, 10), intensity = #ff0000 }
-    point-light: { location = (10, 10, 10), intensity = #ffffff }
-  ]
-  surfaces = [
-    sphere: { 
-      origin = (0, 0, 0)
-      radius = 1.0
-      material = material: {
-        reflectance = #ffffff
-        highlight = #ffffff
-      }
-    }
-    sphere: { 
-      origin = (1, 1, 1)
-      radius = 0.5
-      material = material: {
-        reflectance = #ffffff
-        highlight = #ffffff
-      }
-    }
-  ]
-}
-"""
-    println(ModelParsers.parseAll(ModelParsers.block ,m.asInstanceOf[CharSequence])) 
   }
 }
 
