@@ -151,9 +151,16 @@ class ModelEval(val parent:Option[ModelEval], val block:Block) {
             new Screen(o, xAxis, yAxis, xRes, yRes)
         }
       case "camera" =>
-        evalProps("location", "view-angle", "view-vector", "up-vector", "x-res", "y-res") match {
-          case Seq(l: Point3, a: Double, v: Vector3, u: Vector3, x: Int, y: Int) =>
-            new Camera(l, a, v, u, x, y).screen
+        try { 
+          evalProps("location", "view-angle", "view-vector", "up-vector", "x-res", "y-res") match {
+            case Seq(l: Point3, a: Double, v: Vector3, u: Vector3, x: Int, y: Int) =>
+              Camera(l, a, v, u, x, y)
+          }
+        } catch {
+          // FIXME: Narrow down the Exceptions we catch?
+          case _: Exception => evalProps("eye", "screen") match {
+            case Seq(e: Point3, s: Screen) => Camera(e, s)
+          }
         }
       case "sphere" => 
         evalProps("origin", "radius", "material") match {
@@ -169,11 +176,11 @@ class ModelEval(val parent:Option[ModelEval], val block:Block) {
           case Seq(rc: Color, rv:Color, h: Color) => new GenericMaterial(rc, rv, h)
         }
       case "model" =>
-        evalProps("eye", "screen", "lights", 
-          "surfaces", "ambient", "bg", "recursion-depth") match {
-          case Seq(e: Point3, sc: Screen, li: List[Light], 
-                    su: List[Surface], amb: Color, bg: Color, rd: Int) =>
-            new Model(e, sc, li, su, amb, bg, rd)
+        evalProps("camera", "lights", "surfaces", "ambient", 
+            "bg", "recursion-depth") match {
+          case Seq(c: Camera, li: List[Light], su: List[Surface], amb: Color, 
+              bg: Color, rd: Int) =>
+            new Model(c, li, su, amb, bg, rd)
         }
     }
   }

@@ -5,7 +5,7 @@ floor:= triangle: {
   vertex2 = (-100000, 0, -100000) ^ <0, 1, 0>
   vertex3 = (100000, 0, 0) ^ <0, 1, 0>
   material = material: {
-    reflectance = black
+    reflectance = #404040
     highlight = black
     reflectivity = #808080
   }
@@ -13,11 +13,10 @@ floor:= triangle: {
 
 
 model: {
-  eye = (0, 4, 4)
   recursion-depth = 1
   ambient = #404040
   bg = #000030
-  screen = camera: {
+  camera = camera: {
     location = (0, 4, 4)
     view-vector = <0, -0.85, -1>
     up-vector = <0, 1, 0>

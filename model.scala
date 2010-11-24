@@ -1,25 +1,26 @@
 import scala.math._
 import java.io.File
 
-class Camera (
-  location: Point3, 
-  viewAngle: Double,
-  view: Vector3,
-  up: Vector3,
-  xRes: Int, yRes: Int
-) {
-  require(viewAngle > 0 && viewAngle < 180 && xRes > 0 && yRes > 0)
-  val eye = location
-  val screen = {
-    val ratio = yRes.asInstanceOf[Double] / xRes.asInstanceOf[Double]
-    val width = view.magnitude * Math.tan(0.5 * viewAngle.toRadians)
-    val height = ratio * width
-    val horiz = (view cross up) direction
-    val vert = -(view cross horiz) direction
-    val origin = eye + (view - (vert * (0.5 * height)) - (horiz * (0.5 * width)))
-    val xAxis = horiz * width
-    val yAxis = vert * height
-    new Screen(origin, xAxis, yAxis, xRes, yRes)
+class Camera (val eye: Point3, val screen: Screen)
+
+object Camera {
+  def apply(eye: Point3, screen: Screen) = new Camera(eye, screen)
+  def apply(location: Point3, viewAngle: Double, view: Vector3, 
+      up: Vector3, xRes: Int, yRes: Int) = {
+    require(viewAngle > 0 && viewAngle < 180 && xRes > 0 && yRes > 0)
+    val eye = location
+    val screen = {
+      val ratio = yRes.asInstanceOf[Double] / xRes.asInstanceOf[Double]
+      val width = view.magnitude * Math.tan(0.5 * viewAngle.toRadians)
+      val height = ratio * width
+      val horiz = (view cross up) direction
+      val vert = -(view cross horiz) direction
+      val origin = eye + (view - (vert * (0.5 * height)) - (horiz * (0.5 * width)))
+      val xAxis = horiz * width
+      val yAxis = vert * height
+      new Screen(origin, xAxis, yAxis, xRes, yRes)
+    }
+    new Camera(eye, screen) 
   }
 }
 
@@ -49,8 +50,7 @@ class DirectionalLight(direction:Vector3, val color:Color) extends Light {
 }
 
 class Model (
-  val eye: Point3,
-  val screen: Screen,
+  val camera: Camera,
   val lights: List[Light],
   val surfaces: List[Surface],
   val ambientLight: Color,
@@ -118,12 +118,12 @@ class Model (
   }
 
   def render(file:File) = {
-    val imgBuf = new ImageBuffer(screen.w, screen.h)
-    for ( x <- 0 until screen.w; y <- 0 until screen.h ) {
-      val ray = new Ray(eye, (screen.pixelAt(x, y) - eye).direction)
+    val imgBuf = new ImageBuffer(camera.screen.w, camera.screen.h)
+    for ( x <- 0 until camera.screen.w; y <- 0 until camera.screen.h ) {
+      val ray = new Ray(camera.eye, (camera.screen.pixelAt(x, y) - camera.eye).direction)
       val pixelColor = colorAt(ray, 0, scala.Double.PositiveInfinity)
 
-      val (pX, pY) = (x, screen.h - y - 1)
+      val (pX, pY) = (x, camera.screen.h - y - 1)
       try {
         // y coordinates are numbered top to bottom for ImageBuffer but 
         // are numbered increasing bottom to top in this coordinate space
@@ -136,7 +136,7 @@ class Model (
     imgBuf.writeToFile(file)
   }
 
-  override def toString = String.format("Model: eye = %s, screen = %s, surfaces = %s, lights = %s, ambient = %s, bg = %s", eye, screen, surfaces, lights, ambientLight, backgroundColor)
+  override def toString = String.format("Model: eye = %s, screen = %s, surfaces = %s, lights = %s, ambient = %s, bg = %s", camera.eye, camera.screen, surfaces, lights, ambientLight, backgroundColor)
 
 }
 
