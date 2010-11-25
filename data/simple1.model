@@ -1,5 +1,6 @@
 white := #ffffff
 black := #000000
+red := #ff0000
 floor:= triangle: {
   vertex1 = (-100000, 0, 100000) ^ <0, 1, 0>
   vertex2 = (-100000, 0, -100000) ^ <0, 1, 0>
@@ -7,29 +8,39 @@ floor:= triangle: {
   material = material: {
     reflectance = #404040
     highlight = black
-    reflectivity = #808080
+    reflectivity = white
   }
 }
 
+camera1 := camera: {
+  location = (0, 4, 4)
+  view-vector = <0, -0.90, -1>
+  up-vector = <0, 1, 0>
+  view-angle = 45.0
+  x-res = 1024, y-res = 768
+} 
+
+camera2 := camera: {
+  location = (0, 1, 4)
+  view-vector = <0, -0.1, -1>
+  up-vector = <0, 1, 0>
+  view-angle = 60.0
+  x-res = 1024, y-res = 768
+} 
+
 
 model: {
-  recursion-depth = 1
+  recursion-depth = 0
   ambient = #404040
   bg = #000030
-  camera = camera: {
-    location = (0, 4, 4)
-    view-vector = <0, -0.85, -1>
-    up-vector = <0, 1, 0>
-    view-angle = 45.0
-    x-res = 500, y-res = 500
-  } 
-  lights = [ point-light: { location = (10, 10, 10), intensity = white } ]
+  camera = camera2
+  lights = [ point-light: { location = (10, 8, 10), intensity = white } ]
   surfaces = [
     sphere: {
       origin = (0, 0.5, 0)
       radius = 0.5
       material = material: {
-        reflectance = white
+        reflectance = red
         highlight = white
         reflectivity = black
       }

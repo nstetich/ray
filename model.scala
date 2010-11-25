@@ -11,7 +11,7 @@ object Camera {
     val eye = location
     val screen = {
       val ratio = yRes.asInstanceOf[Double] / xRes.asInstanceOf[Double]
-      val width = view.magnitude * Math.tan(0.5 * viewAngle.toRadians)
+      val width = view.magnitude * tan(0.5 * viewAngle.toRadians)
       val height = ratio * width
       val horiz = (view cross up) direction
       val vert = -(view cross horiz) direction
@@ -95,10 +95,14 @@ class Model (
         for ( light <- lights ) yield {
           val lightRay = new Ray(point, light vectorFrom point)
           val shadowIntersections = otherSurfaces.flatMap(_.intersection(lightRay, 0, 1))
+          // Start the ray out far enough we don't return the same surface we are rendering.
+//          val shadowIntersections = surfaces.flatMap(_.intersection(lightRay, Constants.Error, 1))
           if (shadowIntersections.isEmpty) 
             Some(
-              lambert(intersection.surface.material.reflectance, light.color, normal, lightRay.vector) +
-              phong(intersection.surface.material.highlight, light.color, ray.vector, normal, lightRay.vector)
+              lambert(intersection.surface.material.reflectance, 
+                  light.color, normal, lightRay.vector) +
+              phong(intersection.surface.material.highlight, light.color, 
+                  ray.vector, normal, lightRay.vector)
             )
           else None
         }
@@ -109,7 +113,8 @@ class Model (
             ray.vector + (normal * (2 * (ray.vector dot normal))))
           Some(
             intersection.surface.material.reflectivity * 
-            colorAt(reflectionRay, 0, scala.Double.PositiveInfinity, depth + 1, maxDepth, 
+            // Start the ray out far enough we don't return the same surface we are rendering.
+            colorAt(reflectionRay, Constants.Error, scala.Double.PositiveInfinity, depth + 1, maxDepth, 
               Some(intersection.surface))
           )
         } else None

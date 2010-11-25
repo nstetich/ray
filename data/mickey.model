@@ -5,12 +5,12 @@ green := #00ff00
 blue  := #0000ff
 _material := material: {
   reflectance = white
-  reflectivity = #808080
+  reflectivity = #202020
   highlight = white
 }
 
 model: {
-  recursion-depth = 2
+  recursion-depth = 3
   camera = camera: {
     eye = (0, 0, 20)
     screen = screen: {
@@ -23,9 +23,7 @@ model: {
   ambient = #303030
   bg = #000040
   lights = [
-    point-light: { location = (  0, 10,  10), intensity = #ff2020   }
-    point-light: { location = (-10, 10,  10), intensity = #20ff20 }
-    point-light: { location = ( 10, 10,  10), intensity = #2020ff  }
+    point-light: { location = (  10, 10,  10), intensity = #ffffff   }
   ]
   surfaces = [
     sphere: { origin = (0, 0, 0), radius = 1.0 }

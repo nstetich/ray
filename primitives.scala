@@ -7,13 +7,13 @@ object PrettyPrinter {
 }
 
 object Constants {
-  val Error = 5E-10
+  val Error = 5E-5
   def floatCompare(a:Double, b:Double) = {
     val lowerBound = b - Error
     val upperBound = b + Error
-    if (a < lowerBound) 
+    if (a <= lowerBound) 
       -1
-    else if (a >= lowerBound && a <= upperBound) 
+    else if (a > lowerBound && a < upperBound) 
       0
     else 
       1
