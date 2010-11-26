@@ -8,6 +8,7 @@ object PrettyPrinter {
 
 object Constants {
   val Error = 5E-5
+  
   def floatCompare(a:Double, b:Double) = {
     val lowerBound = b - Error
     val upperBound = b + Error
@@ -34,10 +35,14 @@ class Vector2(val x:Double, val y:Double) {
 
   def dot(v:Vector2) = x * v.x + y * v.y
 
+  def reflectAbout(v: Vector2) = this - (v * (2 * (this dot v)))
+
   override def toString = "V" + PrettyPrinter.coords(x, y)
 }
 
 class Vector3(val x:Double, val y:Double, val z:Double) {
+
+//  def this(p: Point3) = new Vector3(p.x, p.y, p.z)
 
   def magnitude = sqrt(x * x + y * y + z * z)
   def direction = {
@@ -45,18 +50,20 @@ class Vector3(val x:Double, val y:Double, val z:Double) {
     if (m == 0) this else new Vector3(x / m, y / m, z / m)
   }
 
-  def +(v:Vector3) = new Vector3(x + v.x, y + v.y, z + v.z)
-  def -(v:Vector3) = new Vector3(x - v.x, y - v.y, z - v.z)
-  def *(s:Double) = new Vector3(x * s, y * s, z * s)
+  def +(v: Vector3) = new Vector3(x + v.x, y + v.y, z + v.z)
+  def -(v: Vector3) = new Vector3(x - v.x, y - v.y, z - v.z)
+  def *(s: Double) = new Vector3(x * s, y * s, z * s)
   def unary_- = new Vector3(-x, -y, -z)
 
-  def dot(v:Vector3) = x * v.x + y * v.y + z * v.z
+  def dot(v: Vector3) = x * v.x + y * v.y + z * v.z
   // (a2b3 − a3b2, a3b1 − a1b3, a1b2 − a2b1).
-  def cross(v:Vector3) = new Vector3(
+  def cross(v: Vector3) = new Vector3(
     y * v.z - z * v.y, 
     z * v.x - x * v.z,
     x * v.y - y * v.x
   )
+  
+  def reflectAbout(v: Vector3) = this - (v * (2 * (this dot v)))
 
   override def toString = "V" + PrettyPrinter.coords(x, y, z)
 }
@@ -76,7 +83,9 @@ class Point3(val x:Double, val y:Double, val z:Double) {
   override def toString = "P" + PrettyPrinter.coords(x, y, z)
 }
 
-class Ray(val origin:Point3, val vector:Vector3)
+class Ray(val origin:Point3, val vector:Vector3) {
+  override def toString = "Ray: origin = " + origin + ", vector = " + vector
+}
 
 class Vertex(val location:Point3, val normal:Vector3)
 

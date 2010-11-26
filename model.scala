@@ -88,8 +88,9 @@ class Model (
 //      val Some(normal) = intersection.surface.normal(point)
       val normal:Vector3 = intersection.surface.normal(point) match {
         case Some(n:Vector3) => n
-        case _ => new Vector3(0, 0, 0)
+        case None => new Vector3(0, 0, 0)
       }
+//      println(String.format("colorAt(depth=%d, ray=%s): Surface = %s, Point = %s Normal = %s", depth.asInstanceOf[AnyRef], ray, intersection.surface, point, normal))
       val otherSurfaces = surfaces.filterNot(_ == intersection.surface)
       val directLightColors = 
         for ( light <- lights ) yield {
@@ -107,14 +108,13 @@ class Model (
           else None
         }
       val defaultColor = ambientLight * intersection.surface.material.reflectance
+      val reflectivity = intersection.surface.material.reflectivity
       val reflectedLightColor: Option[Color] = 
-        if (depth < maxDepth) {
-          val reflectionRay = new Ray(point, 
-            ray.vector + (normal * (2 * (ray.vector dot normal))))
-          Some(
-            intersection.surface.material.reflectivity * 
+        if (reflectivity != Color.Black && depth < maxDepth) {
+          val reflectionRay = new Ray(point, (ray.vector reflectAbout normal) direction)
+          Some(             
             // Start the ray out far enough we don't return the same surface we are rendering.
-            colorAt(reflectionRay, Constants.Error, scala.Double.PositiveInfinity, depth + 1, maxDepth, 
+            reflectivity * colorAt(reflectionRay, Constants.Error + Constants.Error, scala.Double.PositiveInfinity, depth + 1, maxDepth, 
               Some(intersection.surface))
           )
         } else None
@@ -126,12 +126,13 @@ class Model (
     val imgBuf = new ImageBuffer(camera.screen.w, camera.screen.h)
     for ( x <- 0 until camera.screen.w; y <- 0 until camera.screen.h ) {
       val ray = new Ray(camera.eye, (camera.screen.pixelAt(x, y) - camera.eye).direction)
+//      println(String.format("Painting pixel at (%d, %d).", x.asInstanceOf[AnyRef], y.asInstanceOf[AnyRef]))
       val pixelColor = colorAt(ray, 0, scala.Double.PositiveInfinity)
 
+      // y coordinates are numbered top to bottom for ImageBuffer but 
+      // are numbered increasing bottom to top in this coordinate space
       val (pX, pY) = (x, camera.screen.h - y - 1)
       try {
-        // y coordinates are numbered top to bottom for ImageBuffer but 
-        // are numbered increasing bottom to top in this coordinate space
         imgBuf.setPixel(pX, pY, pixelColor)
       } catch {
         case e:Exception => println( String.format("Error writing pixel at (%d, %d): %s", 
