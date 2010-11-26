@@ -8,8 +8,8 @@ floor:= triangle: {
   vertex2 = (-100000, 0, -100000) ^ <0, 1, 0>
   vertex3 = (100000, 0, 0) ^ <0, 1, 0>
   material = material: {
-    reflectance = #404040
-    highlight = black
+    reflectance = black
+    highlight = white
     reflectivity = white
   }
 }
@@ -32,7 +32,7 @@ camera2 := camera: {
 
 
 model: {
-  recursion-depth = 2
+  recursion-depth = 10
   ambient = #404040
   bg = #000030
   camera = camera1

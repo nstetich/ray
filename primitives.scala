@@ -35,7 +35,7 @@ class Vector2(val x:Double, val y:Double) {
 
   def dot(v:Vector2) = x * v.x + y * v.y
 
-  def reflectAbout(v: Vector2) = this - (v * (2 * (this dot v)))
+  def reflectionAbout(v: Vector2) = this - (v * (2 * (this dot v)))
 
   override def toString = "V" + PrettyPrinter.coords(x, y)
 }
@@ -63,7 +63,7 @@ class Vector3(val x:Double, val y:Double, val z:Double) {
     x * v.y - y * v.x
   )
   
-  def reflectAbout(v: Vector3) = this - (v * (2 * (this dot v)))
+  def reflectionAbout(v: Vector3) = this - (v * (2 * (this dot v)))
 
   override def toString = "V" + PrettyPrinter.coords(x, y, z)
 }

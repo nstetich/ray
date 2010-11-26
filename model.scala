@@ -70,26 +70,29 @@ class Model (
             eye: Vector3, normal: Vector3, light: Vector3) = {
     // Find the (unit) vector pointed halfway between the eye ray and light ray    
     val h = (eye + light).direction
-    val n = normal.direction
+    val n = normal
     val C = h dot n
     reflectance * intensity * (if (C > 0) pow(C, 64) else 0)
   }
   
   def colorAt(ray: Ray, t0: Double, t1: Double): Color = 
-    colorAt(ray, t0, t1, 0, recursionDepth, None)
+    colorAt(ray, t0, t1, 0, recursionDepth)
   
-  def colorAt(ray: Ray, t0:Double, t1: Double, depth: Int, maxDepth: Int, 
-      ignoredSurface: Option[Surface]): Color = {
+  def colorAt(ray: Ray, t0:Double, t1: Double, depth: Int, maxDepth: Int): Color = {
     // Evaluate all light sources
     val intersections = surfaces.flatMap(_.intersection(ray, t0, t1))
     if (!intersections.isEmpty) {
       val intersection = intersections.min
       val point = ray.origin + ray.vector * intersection.t
-//      val Some(normal) = intersection.surface.normal(point)
-      val normal:Vector3 = intersection.surface.normal(point) match {
-        case Some(n:Vector3) => n
-        case None => new Vector3(0, 0, 0)
+      val normal = {
+        val Some(n) = intersection.surface.normal(point)
+        n.direction
       }
+//      val Some(normal) = intersection.surface.normal(point)
+//      val normal:Vector3 = intersection.surface.normal(point) match {
+//        case Some(n:Vector3) => n
+//        case None => new Vector3(0, 0, 0)
+//      }
 //      println(String.format("colorAt(depth=%d, ray=%s): Surface = %s, Point = %s Normal = %s", depth.asInstanceOf[AnyRef], ray, intersection.surface, point, normal))
       val otherSurfaces = surfaces.filterNot(_ == intersection.surface)
       val directLightColors = 
@@ -111,11 +114,11 @@ class Model (
       val reflectivity = intersection.surface.material.reflectivity
       val reflectedLightColor: Option[Color] = 
         if (reflectivity != Color.Black && depth < maxDepth) {
-          val reflectionRay = new Ray(point, (ray.vector reflectAbout normal) direction)
+          val reflectionRay = new Ray(point, ray.vector reflectionAbout normal)
           Some(             
             // Start the ray out far enough we don't return the same surface we are rendering.
-            reflectivity * colorAt(reflectionRay, Constants.Error + Constants.Error, scala.Double.PositiveInfinity, depth + 1, maxDepth, 
-              Some(intersection.surface))
+            reflectivity * colorAt(reflectionRay, Constants.Error + Constants.Error,
+            scala.Double.PositiveInfinity, depth + 1, maxDepth)
           )
         } else None
       (reflectedLightColor :: directLightColors).flatten.foldLeft(defaultColor)(_ + _)
