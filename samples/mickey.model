@@ -1,0 +1,49 @@
+white := #808080
+black := #000000
+red   := #800000
+green := #008000
+blue  := #000080
+
+_reflectivity := #e0e0e0
+_highlight := _reflectivity
+_reflectance := #606060
+_material := color-material: {}
+
+model: {
+  recursion-depth = 25
+  camera = camera: {
+    eye = (0, 0, 20)
+    screen = screen: {
+      origin = (-1.5, -1.5, 4) 
+      xAxis = <3, 0, 0>
+      yAxis = <0, 3, 0> 
+      xRes = 800, yRes = 800
+    }
+  }
+  ambient = #303030
+  bg = #000040
+  lights = [
+    point-light: { location = (  10, 10,  10), intensity = #ffffff   }
+    point-light: { location = ( -10, 10,  10), intensity = #ffffff   }
+  ]
+  surfaces = [
+    sphere: { origin = (0, 0, 0), radius = 1.0 }
+    sphere: { origin = ( 1, 0.8, 1), radius = 0.5, 
+      material = color-material: { reflectance = #500000, reflectivity = #e00000 }
+    }
+    sphere: { origin = (-1, 0.8, 1), radius = 0.5, 
+      material = color-material: { reflectance = #500080, reflectivity = #0000e0}
+    }
+    triangle: {
+      vertex1 = (-2, -1,  40) ^ <0, 1, 0>
+      vertex2 = ( 2, -1,  40) ^ <0, 1, 0>
+      vertex3 = (-2, -1, -4) ^ <0, 1, 0>
+    }
+    triangle: {
+      vertex1 = (-2, -1, -4) ^ <0, 1, 0>
+      vertex2 = ( 2, -1, -4) ^ <0, 1, 0>
+      vertex3 = ( 2, -1,  40) ^ <0, 1, 0>
+    }
+  ]
+}
+
